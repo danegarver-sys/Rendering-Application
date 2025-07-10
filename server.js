@@ -140,6 +140,7 @@ app.post('/generate-video', upload.fields([
 
 // Text-to-image generation using Replicate
 async function generateTextToImage(prompt) {
+    console.log('TEXT-TO-IMAGE Function called with prompt:', prompt);
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     if (!REPLICATE_API_TOKEN) {
@@ -171,17 +172,21 @@ async function generateTextToImage(prompt) {
     };
 
     return new Promise((resolve, reject) => {
+        console.log('TEXT-TO-IMAGE Making API request...');
         const req = https.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => {
                 data += chunk;
             });
             res.on('end', async () => {
+                console.log('TEXT-TO-IMAGE API Response received:', data);
+                console.log('TEXT-TO-IMAGE Status code:', res.statusCode);
                 if (res.statusCode !== 200) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
                 const prediction = JSON.parse(data);
+                console.log('TEXT-TO-IMAGE Prediction status:', prediction.status);
                 
                 // Check if prediction was created successfully
                 if (prediction.error) {
@@ -191,27 +196,33 @@ async function generateTextToImage(prompt) {
                 
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
+                    console.log('TEXT-TO-IMAGE Prediction already completed');
                     resolve({ image: prediction.output[0] });
                     return;
                 }
                 
                 // If prediction is starting or processing, poll for completion
                 if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    console.log('TEXT-TO-IMAGE Prediction starting/processing, polling for completion...');
                     try {
                         const result = await pollForCompletion(prediction.id);
+                        console.log('TEXT-TO-IMAGE Polling completed successfully');
                         resolve({ image: result.output[0] });
                     } catch (error) {
+                        console.log('TEXT-TO-IMAGE Polling failed:', error.message);
                         reject(error);
                     }
                     return;
                 }
                 
                 // If we get here, something unexpected happened
+                console.log('TEXT-TO-IMAGE Unexpected status:', prediction.status);
                 reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
 
         req.on('error', (error) => {
+            console.log('TEXT-TO-IMAGE Request error:', error.message);
             reject(error);
         });
 
