@@ -375,17 +375,8 @@ async function generateVideo(prompt, images) {
         });
         console.log('VIDEO: Attempting real video generation with image input');
     } else {
-        // Text-to-video generation - try a working video model
-        postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
-            input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 16,
-                fps: 8
-            }
-        });
-        console.log('VIDEO: Attempting real video generation with text input');
+        // Text-to-video generation - this model requires an input image
+        throw new Error('Video generation requires at least one uploaded image. Please upload an image and try again.');
     }
 
     const options = {
