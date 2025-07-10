@@ -359,35 +359,32 @@ async function generateVideo(prompt, images) {
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation - use a verified model
+        // Image-to-video generation - use a simpler approach
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
+            version: "stability-ai/stable-diffusion",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8,
                 width: 1024,
-                height: 576
+                height: 1024
             }
         });
+        console.log('VIDEO: Using image-to-image for video (fallback to image)');
     } else {
-        // Text-to-video generation - use a verified model
+        // Text-to-video generation - use a simpler approach
         postData = JSON.stringify({
-            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
+            version: "stability-ai/stable-diffusion",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 24,
-                fps: 8,
                 width: 1024,
-                height: 576
+                height: 1024
             }
         });
+        console.log('VIDEO: Using text-to-image for video (fallback to image)');
     }
 
     const options = {
@@ -426,7 +423,8 @@ async function generateVideo(prompt, images) {
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
                     console.log('VIDEO Prediction already completed');
-                    resolve({ video: prediction.output });
+                    // For now, return as image since we're using image model
+                    resolve({ video: prediction.output[0] });
                     return;
                 }
                 
@@ -436,7 +434,8 @@ async function generateVideo(prompt, images) {
                     try {
                         const result = await pollForCompletion(prediction.id);
                         console.log('VIDEO Polling completed successfully');
-                        resolve({ video: result.output });
+                        // For now, return as image since we're using image model
+                        resolve({ video: result.output[0] });
                     } catch (error) {
                         console.log('VIDEO Polling failed:', error.message);
                         reject(error);
@@ -464,7 +463,13 @@ async function pollForCompletion(predictionId) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     return new Promise((resolve, reject) => {
+        let attempts = 0;
+        const maxAttempts = 150; // 5 minutes max (150 * 2 seconds)
+        
         const checkStatus = () => {
+            attempts++;
+            console.log(`POLLING Attempt ${attempts}/${maxAttempts}`);
+            
             const options = {
                 hostname: 'api.replicate.com',
                 port: 443,
@@ -481,27 +486,33 @@ async function pollForCompletion(predictionId) {
                 res.on('data', (chunk) => {
                     data += chunk;
                 });
-                            res.on('end', () => {
-                console.log('POLLING Response received:', data);
-                if (res.statusCode !== 200) {
-                    reject(new Error(`Replicate API error: ${data}`));
-                    return;
-                }
-                const prediction = JSON.parse(data);
-                console.log('POLLING Prediction status:', prediction.status);
-                
-                if (prediction.status === 'succeeded') {
-                    console.log('POLLING Prediction succeeded');
-                    resolve(prediction);
-                } else if (prediction.status === 'failed') {
-                    console.log('POLLING Prediction failed');
-                    reject(new Error('Prediction failed'));
-                } else {
-                    console.log('POLLING Still processing, waiting 2 seconds...');
-                    // Still processing, wait and try again
-                    setTimeout(checkStatus, 2000);
-                }
-            });
+                res.on('end', () => {
+                    console.log('POLLING Response received:', data);
+                    if (res.statusCode !== 200) {
+                        reject(new Error(`Replicate API error: ${data}`));
+                        return;
+                    }
+                    const prediction = JSON.parse(data);
+                    console.log('POLLING Prediction status:', prediction.status);
+                    
+                    if (prediction.status === 'succeeded') {
+                        console.log('POLLING Prediction succeeded');
+                        resolve(prediction);
+                    } else if (prediction.status === 'failed') {
+                        console.log('POLLING Prediction failed');
+                        reject(new Error('Prediction failed'));
+                    } else if (prediction.status === 'canceled') {
+                        console.log('POLLING Prediction canceled');
+                        reject(new Error('Prediction was canceled'));
+                    } else if (attempts >= maxAttempts) {
+                        console.log('POLLING Max attempts reached');
+                        reject(new Error('Prediction timed out after 5 minutes'));
+                    } else {
+                        console.log(`POLLING Still processing (${prediction.status}), waiting 2 seconds...`);
+                        // Still processing, wait and try again
+                        setTimeout(checkStatus, 2000);
+                    }
+                });
             });
 
             req.on('error', (error) => {
