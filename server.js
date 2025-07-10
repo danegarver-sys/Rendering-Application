@@ -181,7 +181,7 @@ async function generateTextToImage(prompt) {
             res.on('end', async () => {
                 console.log('TEXT-TO-IMAGE API Response received:', data);
                 console.log('TEXT-TO-IMAGE Status code:', res.statusCode);
-                if (res.statusCode !== 200) {
+                if (res.statusCode !== 200 && res.statusCode !== 201) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
@@ -278,7 +278,7 @@ async function generateImageToImage(prompt, images) {
                 data += chunk;
             });
             res.on('end', async () => {
-                if (res.statusCode !== 200) {
+                if (res.statusCode !== 200 && res.statusCode !== 201) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
@@ -362,7 +362,7 @@ async function generateVideo(prompt, images) {
             });
             res.on('end', async () => {
                 console.log('VIDEO API Response received:', data);
-                if (res.statusCode !== 200) {
+                if (res.statusCode !== 200 && res.statusCode !== 201) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
