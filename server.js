@@ -346,8 +346,8 @@ async function generateVideo(prompt, images) {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
                 input_image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8,
+                num_frames: 48,
+                fps: 12,
                 width: 1024,
                 height: 576
             }
@@ -359,8 +359,8 @@ async function generateVideo(prompt, images) {
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 24,
-                fps: 8,
+                num_frames: 48,
+                fps: 12,
                 width: 1024,
                 height: 576
             }
