@@ -143,21 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Check if any images are uploaded for video generation
-            let hasImages = false;
-            for (let i = 1; i <= 3; i++) {
-                const fileInput = document.getElementById('imageUpload' + i);
-                if (fileInput.files[0]) {
-                    hasImages = true;
-                    break;
-                }
-            }
-            
-            if (!hasImages) {
-                generatedFrame.innerHTML = '<div class="loading-message">Error: Video generation requires at least one uploaded image. Please upload an image and try again.</div>';
-                return;
-            }
-            
             // Call the video generation endpoint
             const response = await fetch(`${BACKEND_URL}/generate-video`, {
                 method: 'POST',

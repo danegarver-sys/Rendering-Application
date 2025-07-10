@@ -359,24 +359,37 @@ async function generateVideo(prompt, images) {
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation - try a working video model
+        // Image-to-video generation - try a different model that respects prompts
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                input_image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 16,
-                fps: 8
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
             }
         });
-        console.log('VIDEO: Attempting real video generation with image input');
+        console.log('VIDEO: Attempting prompt-aware video generation with image input');
     } else {
-        // Text-to-video generation - this model requires an input image
-        throw new Error('Video generation requires at least one uploaded image. Please upload an image and try again.');
+        // Text-to-video generation - try a different model that works without images
+        postData = JSON.stringify({
+            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
+            input: {
+                prompt: prompt,
+                negative_prompt: "blurry, low quality, distorted, unrealistic",
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
+            }
+        });
+        console.log('VIDEO: Attempting prompt-aware video generation with text input');
     }
 
     const options = {
