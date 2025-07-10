@@ -12,7 +12,11 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+
+// Serve static files (CSS, JS, images) but not HTML
+app.use('/style.css', express.static(__dirname + '/style.css'));
+app.use('/script.js', express.static(__dirname + '/script.js'));
+app.use('/favicon.ico', express.static(__dirname + '/favicon.ico'));
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -26,7 +30,14 @@ const upload = multer({
 
 // Routes
 app.get('/', (req, res) => {
+    console.log('Root route accessed');
     res.sendFile(__dirname + '/index.html');
+});
+
+// Debug route to test if server is responding
+app.get('/test', (req, res) => {
+    console.log('Test route accessed');
+    res.json({ message: 'Backend is working!', timestamp: new Date().toISOString() });
 });
 
 // Generate image from multiple inputs
@@ -35,6 +46,7 @@ app.post('/generate', upload.fields([
     { name: 'image2', maxCount: 1 },
     { name: 'image3', maxCount: 1 }
 ]), async (req, res) => {
+    console.log('Generate endpoint accessed');
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
