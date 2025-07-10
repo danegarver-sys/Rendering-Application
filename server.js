@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const fetch = require('node-fetch');
-const FormData = require('form-data');
+const https = require('https');
+const http = require('http');
 require('dotenv').config();
 
 const app = express();
@@ -145,35 +145,58 @@ async function generateTextToImage(prompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
+    const postData = JSON.stringify({
+        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        input: {
+            prompt: prompt,
+            negative_prompt: "blurry, low quality, distorted, unrealistic",
+            num_inference_steps: 50,
+            guidance_scale: 7.5,
+            width: 1024,
+            height: 1024
+        }
+    });
+
+    const options = {
+        hostname: 'api.replicate.com',
+        port: 443,
+        path: '/v1/predictions',
         method: 'POST',
         headers: {
             'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-            input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_inference_steps: 50,
-                guidance_scale: 7.5,
-                width: 1024,
-                height: 1024
-            }
-        })
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', async () => {
+                if (res.statusCode !== 200) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                try {
+                    const result = await pollForCompletion(prediction.id);
+                    resolve({ image: result.output[0] });
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
     });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Replicate API error: ${error}`);
-    }
-
-    const prediction = await response.json();
-    
-    // Poll for completion
-    const result = await pollForCompletion(prediction.id);
-    return { image: result.output[0] };
 }
 
 // Image-to-image generation using Replicate
@@ -190,37 +213,60 @@ async function generateImageToImage(prompt, images) {
     // Remove data URL prefix to get just the base64
     const base64Data = baseImage.dataUrl.split(',')[1];
 
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
+    const postData = JSON.stringify({
+        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        input: {
+            prompt: prompt,
+            negative_prompt: "blurry, low quality, distorted, unrealistic",
+            image: `data:image/jpeg;base64,${base64Data}`,
+            num_inference_steps: 50,
+            guidance_scale: 7.5,
+            strength: 0.8,
+            width: 1024,
+            height: 1024
+        }
+    });
+
+    const options = {
+        hostname: 'api.replicate.com',
+        port: 443,
+        path: '/v1/predictions',
         method: 'POST',
         headers: {
             'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-            input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                image: `data:image/jpeg;base64,${base64Data}`,
-                num_inference_steps: 50,
-                guidance_scale: 7.5,
-                strength: 0.8,
-                width: 1024,
-                height: 1024
-            }
-        })
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', async () => {
+                if (res.statusCode !== 200) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                try {
+                    const result = await pollForCompletion(prediction.id);
+                    resolve({ image: result.output[0] });
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
     });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Replicate API error: ${error}`);
-    }
-
-    const prediction = await response.json();
-    
-    // Poll for completion
-    const result = await pollForCompletion(prediction.id);
-    return { image: result.output[0] };
 }
 
 // Video generation using Replicate
@@ -232,35 +278,58 @@ async function generateVideo(prompt, images) {
     }
 
     // For video generation, we'll use a text-to-video model
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
+    const postData = JSON.stringify({
+        version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+        input: {
+            prompt: prompt,
+            negative_prompt: "blurry, low quality, distorted, unrealistic",
+            num_frames: 24,
+            fps: 8,
+            width: 1024,
+            height: 576
+        }
+    });
+
+    const options = {
+        hostname: 'api.replicate.com',
+        port: 443,
+        path: '/v1/predictions',
         method: 'POST',
         headers: {
             'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
-            input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 24,
-                fps: 8,
-                width: 1024,
-                height: 576
-            }
-        })
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', async () => {
+                if (res.statusCode !== 200) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                try {
+                    const result = await pollForCompletion(prediction.id);
+                    resolve({ video: result.output });
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
     });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Replicate API error: ${error}`);
-    }
-
-    const prediction = await response.json();
-    
-    // Poll for completion
-    const result = await pollForCompletion(prediction.id);
-    return { video: result.output };
 }
 
 // Poll for prediction completion
@@ -268,23 +337,49 @@ async function pollForCompletion(predictionId) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     while (true) {
-        const response = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+        const options = {
+            hostname: 'api.replicate.com',
+            port: 443,
+            path: `/v1/predictions/${predictionId}`,
+            method: 'GET',
             headers: {
                 'Authorization': `Token ${REPLICATE_API_TOKEN}`,
                 'Content-Type': 'application/json'
             }
-        });
+        };
 
-        const prediction = await response.json();
-        
-        if (prediction.status === 'succeeded') {
-            return prediction;
-        } else if (prediction.status === 'failed') {
-            throw new Error('Prediction failed');
-        }
-        
-        // Wait 1 second before polling again
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        return new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    if (res.statusCode !== 200) {
+                        reject(new Error(`Replicate API error: ${data}`));
+                        return;
+                    }
+                    const prediction = JSON.parse(data);
+                    
+                    if (prediction.status === 'succeeded') {
+                        resolve(prediction);
+                    } else if (prediction.status === 'failed') {
+                        reject(new Error('Prediction failed'));
+                    } else {
+                        // Still processing, wait and try again
+                        setTimeout(() => {
+                            pollForCompletion(predictionId).then(resolve).catch(reject);
+                        }, 1000);
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            req.end();
+        });
     }
 }
 
