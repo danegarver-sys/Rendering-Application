@@ -249,14 +249,14 @@ async function generateImageToImage(prompt, images) {
     const base64Data = baseImage.dataUrl.split(',')[1];
 
     const postData = JSON.stringify({
-        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c79ee7e56b444416244582af3fcdfce19f",
         input: {
             prompt: prompt,
             negative_prompt: "blurry, low quality, distorted, unrealistic",
             image: `data:image/jpeg;base64,${base64Data}`,
             num_inference_steps: 50,
             guidance_scale: 7.5,
-            strength: 0.8,
+            strength: 0.75,
             width: 1024,
             height: 1024
         }
