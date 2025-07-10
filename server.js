@@ -350,11 +350,13 @@ async function generateVideo(prompt, images) {
                 data += chunk;
             });
             res.on('end', async () => {
+                console.log('VIDEO API Response received:', data);
                 if (res.statusCode !== 200) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
                 const prediction = JSON.parse(data);
+                console.log('VIDEO Prediction status:', prediction.status);
                 
                 // Check if prediction was created successfully
                 if (prediction.error) {
@@ -364,22 +366,27 @@ async function generateVideo(prompt, images) {
                 
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
+                    console.log('VIDEO Prediction already completed');
                     resolve({ video: prediction.output });
                     return;
                 }
                 
                 // If prediction is starting or processing, poll for completion
                 if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    console.log('VIDEO Prediction starting/processing, polling for completion...');
                     try {
                         const result = await pollForCompletion(prediction.id);
+                        console.log('VIDEO Polling completed successfully');
                         resolve({ video: result.output });
                     } catch (error) {
+                        console.log('VIDEO Polling failed:', error.message);
                         reject(error);
                     }
                     return;
                 }
                 
                 // If we get here, something unexpected happened
+                console.log('VIDEO Unexpected status:', prediction.status);
                 reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
@@ -415,22 +422,27 @@ async function pollForCompletion(predictionId) {
                 res.on('data', (chunk) => {
                     data += chunk;
                 });
-                res.on('end', () => {
-                    if (res.statusCode !== 200) {
-                        reject(new Error(`Replicate API error: ${data}`));
-                        return;
-                    }
-                    const prediction = JSON.parse(data);
-                    
-                    if (prediction.status === 'succeeded') {
-                        resolve(prediction);
-                    } else if (prediction.status === 'failed') {
-                        reject(new Error('Prediction failed'));
-                    } else {
-                        // Still processing, wait and try again
-                        setTimeout(checkStatus, 2000);
-                    }
-                });
+                            res.on('end', () => {
+                console.log('POLLING Response received:', data);
+                if (res.statusCode !== 200) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                console.log('POLLING Prediction status:', prediction.status);
+                
+                if (prediction.status === 'succeeded') {
+                    console.log('POLLING Prediction succeeded');
+                    resolve(prediction);
+                } else if (prediction.status === 'failed') {
+                    console.log('POLLING Prediction failed');
+                    reject(new Error('Prediction failed'));
+                } else {
+                    console.log('POLLING Still processing, waiting 2 seconds...');
+                    // Still processing, wait and try again
+                    setTimeout(checkStatus, 2000);
+                }
+            });
             });
 
             req.on('error', (error) => {
