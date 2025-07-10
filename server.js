@@ -26,7 +26,22 @@ const upload = multer({
         fileSize: 10 * 1024 * 1024, // 10MB limit
         files: 3 // Max 3 files
     }
-});
+}).fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 }
+]);
+
+// Error handling middleware for multer
+const handleUpload = (req, res, next) => {
+    upload(req, res, (err) => {
+        if (err) {
+            console.error('Multer error:', err);
+            return res.status(400).json({ error: 'File upload error: ' + err.message });
+        }
+        next();
+    });
+};
 
 // Routes
 app.get('/', (req, res) => {
@@ -41,12 +56,12 @@ app.get('/test', (req, res) => {
 });
 
 // Generate image from multiple inputs
-app.post('/generate', upload.fields([
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 }
-]), async (req, res) => {
+app.post('/generate', handleUpload, async (req, res) => {
     console.log('Generate endpoint accessed');
+    console.log('Request headers:', req.headers);
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('Files received:', req.files ? Object.keys(req.files) : 'No files');
+    
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
@@ -106,11 +121,7 @@ app.post('/generate', upload.fields([
 });
 
 // Generate video from multiple inputs
-app.post('/generate-video', upload.fields([
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 }
-]), async (req, res) => {
+app.post('/generate-video', handleUpload, async (req, res) => {
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
