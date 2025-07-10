@@ -194,13 +194,19 @@ async function generateTextToImage(prompt) {
                     return;
                 }
                 
-                // Otherwise, poll for completion
-                try {
-                    const result = await pollForCompletion(prediction.id);
-                    resolve({ image: result.output[0] });
-                } catch (error) {
-                    reject(error);
+                // If prediction is starting or processing, poll for completion
+                if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    try {
+                        const result = await pollForCompletion(prediction.id);
+                        resolve({ image: result.output[0] });
+                    } catch (error) {
+                        reject(error);
+                    }
+                    return;
                 }
+                
+                // If we get here, something unexpected happened
+                reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
 
@@ -265,12 +271,32 @@ async function generateImageToImage(prompt, images) {
                     return;
                 }
                 const prediction = JSON.parse(data);
-                try {
-                    const result = await pollForCompletion(prediction.id);
-                    resolve({ image: result.output[0] });
-                } catch (error) {
-                    reject(error);
+                
+                // Check if prediction was created successfully
+                if (prediction.error) {
+                    reject(new Error(`Replicate API error: ${prediction.error}`));
+                    return;
                 }
+                
+                // If prediction is already completed, return it
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    resolve({ image: prediction.output[0] });
+                    return;
+                }
+                
+                // If prediction is starting or processing, poll for completion
+                if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    try {
+                        const result = await pollForCompletion(prediction.id);
+                        resolve({ image: result.output[0] });
+                    } catch (error) {
+                        reject(error);
+                    }
+                    return;
+                }
+                
+                // If we get here, something unexpected happened
+                reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
 
@@ -328,12 +354,32 @@ async function generateVideo(prompt, images) {
                     return;
                 }
                 const prediction = JSON.parse(data);
-                try {
-                    const result = await pollForCompletion(prediction.id);
-                    resolve({ video: result.output });
-                } catch (error) {
-                    reject(error);
+                
+                // Check if prediction was created successfully
+                if (prediction.error) {
+                    reject(new Error(`Replicate API error: ${prediction.error}`));
+                    return;
                 }
+                
+                // If prediction is already completed, return it
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    resolve({ video: prediction.output });
+                    return;
+                }
+                
+                // If prediction is starting or processing, poll for completion
+                if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    try {
+                        const result = await pollForCompletion(prediction.id);
+                        resolve({ video: result.output });
+                    } catch (error) {
+                        reject(error);
+                    }
+                    return;
+                }
+                
+                // If we get here, something unexpected happened
+                reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
 
