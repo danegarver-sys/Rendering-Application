@@ -332,18 +332,40 @@ async function generateVideo(prompt, images) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // For video generation, we'll use a text-to-video model
-    const postData = JSON.stringify({
-        version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
-        input: {
-            prompt: prompt,
-            negative_prompt: "blurry, low quality, distorted, unrealistic",
-            num_frames: 24,
-            fps: 8,
-            width: 1024,
-            height: 576
-        }
-    });
+    // Check if we have images for image-to-video, or use text-to-video
+    let postData;
+    
+    if (images && images.length > 0) {
+        // Image-to-video generation
+        const baseImage = images[0];
+        const base64Data = baseImage.dataUrl.split(',')[1];
+        
+        postData = JSON.stringify({
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            input: {
+                prompt: prompt,
+                negative_prompt: "blurry, low quality, distorted, unrealistic",
+                input_image: `data:image/jpeg;base64,${base64Data}`,
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
+            }
+        });
+    } else {
+        // Text-to-video generation - use a different model that doesn't require input_image
+        postData = JSON.stringify({
+            version: "stability-ai/stable-video-diffusion",
+            input: {
+                prompt: prompt,
+                negative_prompt: "blurry, low quality, distorted, unrealistic",
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
+            }
+        });
+    }
 
     const options = {
         hostname: 'api.replicate.com',
