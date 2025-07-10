@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Backend URL - update this when you deploy to Render.com
-    const BACKEND_URL = 'http://localhost:3000'; // Change this to your deployed URL
+    const BACKEND_URL = 'https://rendering-application.onrender.com'; // Your deployed Render URL
+    
+    // Debug: Log the backend URL to console
+    console.log('Backend URL:', BACKEND_URL);
     
     function setupImageUpload(inputId, previewId) {
         const input = document.getElementById(inputId);
