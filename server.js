@@ -126,18 +126,18 @@ app.post('/generate', handleUpload, async (req, res) => {
     }
 });
 
-// Generate video from multiple inputs
-app.post('/generate-video', handleUpload, async (req, res) => {
-    console.log('Generate-video endpoint accessed');
-    console.log('Video request headers:', req.headers);
-    console.log('Video request body keys:', Object.keys(req.body));
-    console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
+// Generate face-focused images from multiple inputs
+app.post('/generate-face', handleUpload, async (req, res) => {
+    console.log('Generate-face endpoint accessed');
+    console.log('Face request headers:', req.headers);
+    console.log('Face request body keys:', Object.keys(req.body));
+    console.log('Face files received:', req.files ? Object.keys(req.files) : 'No files');
     
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
         
-        console.log('Video generation request:', { prompt, imageType1, imageType2, imageType3 });
+        console.log('Face generation request:', { prompt, imageType1, imageType2, imageType3 });
 
         if (!prompt || prompt.trim() === '') {
             return res.status(400).json({ error: 'Prompt is required' });
@@ -166,11 +166,11 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             }
         }
 
-        // Generate video
-        const result = await generateVideo(prompt, uploadedImages);
+        // Generate face-focused image
+        const result = await generateFaceImage(prompt, uploadedImages);
         res.json(result);
     } catch (error) {
-        console.error('Video generation error:', error);
+        console.error('Face generation error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -358,49 +358,44 @@ async function generateImageToImage(prompt, images) {
     });
 }
 
-// Video generation using Replicate
-async function generateVideo(prompt, images) {
+// Face-focused image generation using Replicate
+async function generateFaceImage(prompt, images) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     if (!REPLICATE_API_TOKEN) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // Check if we have images for image-to-video, or use text-to-video
+    // Use a model optimized for realistic human faces
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation - try a different model that respects prompts
+        // Image-to-image with face focus
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8,
+                prompt: prompt + ", realistic human face, detailed portrait, high quality, professional photography",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch",
                 width: 1024,
-                height: 576
+                height: 1024
             }
         });
-        console.log('VIDEO: Attempting prompt-aware video generation with image input');
+        console.log('FACE: Using image-to-image with face focus');
     } else {
-        // Text-to-video generation - try a different model that works without images
+        // Text-to-image with face focus
         postData = JSON.stringify({
-            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt,
-                negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 24,
-                fps: 8,
+                prompt: prompt + ", realistic human face, detailed portrait, high quality, professional photography",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch",
                 width: 1024,
-                height: 576
+                height: 1024
             }
         });
-        console.log('VIDEO: Attempting prompt-aware video generation with text input');
+        console.log('FACE: Using text-to-image with face focus');
     }
 
     const options = {
@@ -422,13 +417,13 @@ async function generateVideo(prompt, images) {
                 data += chunk;
             });
             res.on('end', async () => {
-                console.log('VIDEO API Response received:', data);
+                console.log('FACE API Response received:', data);
                 if (res.statusCode !== 200 && res.statusCode !== 201) {
                     reject(new Error(`Replicate API error: ${data}`));
                     return;
                 }
                 const prediction = JSON.parse(data);
-                console.log('VIDEO Prediction status:', prediction.status);
+                console.log('FACE Prediction status:', prediction.status);
                 
                 // Check if prediction was created successfully
                 if (prediction.error) {
@@ -438,29 +433,27 @@ async function generateVideo(prompt, images) {
                 
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
-                    console.log('VIDEO Prediction already completed');
-                    // Return actual video output
-                    resolve({ video: prediction.output });
+                    console.log('FACE Prediction already completed');
+                    resolve({ image: prediction.output[0] });
                     return;
                 }
                 
                 // If prediction is starting or processing, poll for completion
                 if (prediction.status === 'starting' || prediction.status === 'processing') {
-                    console.log('VIDEO Prediction starting/processing, polling for completion...');
+                    console.log('FACE Prediction starting/processing, polling for completion...');
                     try {
                         const result = await pollForCompletion(prediction.id);
-                        console.log('VIDEO Polling completed successfully');
-                        // Return actual video output
-                        resolve({ video: result.output });
+                        console.log('FACE Polling completed successfully');
+                        resolve({ image: result.output[0] });
                     } catch (error) {
-                        console.log('VIDEO Polling failed:', error.message);
+                        console.log('FACE Polling failed:', error.message);
                         reject(error);
                     }
                     return;
                 }
                 
                 // If we get here, something unexpected happened
-                console.log('VIDEO Unexpected status:', prediction.status);
+                console.log('FACE Unexpected status:', prediction.status);
                 reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });

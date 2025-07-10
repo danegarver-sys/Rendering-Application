@@ -137,8 +137,8 @@ button:hover {
     background: #255ed6;
 }
 
-.video-btn {
-    background-color: #2196F3;
+.face-btn {
+    background-color: #FF6B35;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -149,8 +149,8 @@ button:hover {
     margin-right: 10px;
 }
 
-.video-btn:hover {
-    background-color: #1976D2;
+.face-btn:hover {
+    background-color: #E55A2B;
 }
 
 .placeholder-text {

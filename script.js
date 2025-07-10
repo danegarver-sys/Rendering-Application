@@ -106,14 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Add video generation functionality
-    const videoBtn = document.createElement('button');
-    videoBtn.textContent = 'Generate Video';
-    videoBtn.className = 'video-btn';
-    videoBtn.style.marginTop = '10px';
-    videoBtn.style.marginRight = '10px';
+    // Add face generation functionality
+    const faceBtn = document.createElement('button');
+    faceBtn.textContent = 'Generate Face';
+    faceBtn.className = 'face-btn';
+    faceBtn.style.marginTop = '10px';
+    faceBtn.style.marginRight = '10px';
     
-    videoBtn.addEventListener('click', async function(e) {
+    faceBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
         // Collect form data
@@ -138,13 +138,13 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating video... This may take 3-5 minutes.';
+        loadingMsg.textContent = 'Generating face-focused image... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Call the video generation endpoint
-            const response = await fetch(`${BACKEND_URL}/generate-video`, {
+            // Call the face generation endpoint
+            const response = await fetch(`${BACKEND_URL}/generate-face`, {
                 method: 'POST',
                 body: formData
             });
@@ -155,38 +155,38 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
 
-            if (data.video) {
+            if (data.image) {
                 generatedFrame.innerHTML = '';
-                const video = document.createElement('video');
-                video.src = data.video;
-                video.controls = true;
-                video.style.maxWidth = '100%';
-                video.style.height = 'auto';
-                generatedFrame.appendChild(video);
+                const genImg = document.createElement('img');
+                genImg.src = data.image;
+                genImg.alt = 'Generated Face Image';
+                genImg.style.maxWidth = '100%';
+                genImg.style.height = 'auto';
+                generatedFrame.appendChild(genImg);
 
                 // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadBtn';
-                downloadBtn.textContent = 'Download Video';
+                downloadBtn.textContent = 'Download Face Image';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
-                    link.href = data.video;
-                    link.download = 'generated_video.mp4';
+                    link.href = data.image;
+                    link.download = 'generated_face.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                 };
                 generatedFrame.appendChild(downloadBtn);
             } else {
-                generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Video generation failed') + '</div>';
+                generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Face generation failed') + '</div>';
             }
         } catch (err) {
             generatedFrame.innerHTML = '<div class="loading-message">Error: ' + err.message + '</div>';
         }
     });
 
-    // Add the video button to the form
+    // Add the face button to the form
     const submitBtn = uploadForm.querySelector('button[type="submit"]');
-    submitBtn.parentNode.insertBefore(videoBtn, submitBtn);
+    submitBtn.parentNode.insertBefore(faceBtn, submitBtn);
 });
