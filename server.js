@@ -364,7 +364,7 @@ async function generateVideo(prompt, images) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "stability-ai/stable-diffusion",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
@@ -376,7 +376,7 @@ async function generateVideo(prompt, images) {
     } else {
         // Text-to-video generation - use a simpler approach
         postData = JSON.stringify({
-            version: "stability-ai/stable-diffusion",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
