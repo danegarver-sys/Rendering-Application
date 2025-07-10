@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('.'));
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -26,7 +26,7 @@ const upload = multer({
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('Architectural Rendering Backend is running!');
+    res.sendFile(__dirname + '/index.html');
 });
 
 // Generate image from multiple inputs
