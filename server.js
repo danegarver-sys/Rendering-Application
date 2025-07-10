@@ -55,6 +55,12 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Backend is working!', timestamp: new Date().toISOString() });
 });
 
+// Debug route to test video endpoint
+app.get('/test-video', (req, res) => {
+    console.log('Test video route accessed');
+    res.json({ message: 'Video endpoint is accessible!', timestamp: new Date().toISOString() });
+});
+
 // Generate image from multiple inputs
 app.post('/generate', handleUpload, async (req, res) => {
     console.log('Generate endpoint accessed');
@@ -122,6 +128,11 @@ app.post('/generate', handleUpload, async (req, res) => {
 
 // Generate video from multiple inputs
 app.post('/generate-video', handleUpload, async (req, res) => {
+    console.log('Generate-video endpoint accessed');
+    console.log('Video request headers:', req.headers);
+    console.log('Video request body keys:', Object.keys(req.body));
+    console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
+    
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
