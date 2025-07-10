@@ -359,31 +359,31 @@ async function generateVideo(prompt, images) {
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation
+        // Image-to-video generation - use a verified model
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                input_image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 48,
-                fps: 12,
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_frames: 24,
+                fps: 8,
                 width: 1024,
                 height: 576
             }
         });
     } else {
-        // Text-to-video generation - use a different model that doesn't require input_image
+        // Text-to-video generation - use a verified model
         postData = JSON.stringify({
-            version: "anotherjesse/zeroscope-v2-xl",
+            version: "9f0f3cc6d87f0b2e0259a459819d9613db7d195f1c0f6a395e8f7b45d4f83fc",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
-                num_frames: 48,
-                fps: 12,
+                num_frames: 24,
+                fps: 8,
                 width: 1024,
                 height: 576
             }
