@@ -181,6 +181,20 @@ async function generateTextToImage(prompt) {
                     return;
                 }
                 const prediction = JSON.parse(data);
+                
+                // Check if prediction was created successfully
+                if (prediction.error) {
+                    reject(new Error(`Replicate API error: ${prediction.error}`));
+                    return;
+                }
+                
+                // If prediction is already completed, return it
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    resolve({ image: prediction.output[0] });
+                    return;
+                }
+                
+                // Otherwise, poll for completion
                 try {
                     const result = await pollForCompletion(prediction.id);
                     resolve({ image: result.output[0] });
@@ -336,19 +350,19 @@ async function generateVideo(prompt, images) {
 async function pollForCompletion(predictionId) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
-    while (true) {
-        const options = {
-            hostname: 'api.replicate.com',
-            port: 443,
-            path: `/v1/predictions/${predictionId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-                'Content-Type': 'application/json'
-            }
-        };
+    return new Promise((resolve, reject) => {
+        const checkStatus = () => {
+            const options = {
+                hostname: 'api.replicate.com',
+                port: 443,
+                path: `/v1/predictions/${predictionId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${REPLICATE_API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
+            };
 
-        return new Promise((resolve, reject) => {
             const req = https.request(options, (res) => {
                 let data = '';
                 res.on('data', (chunk) => {
@@ -367,9 +381,7 @@ async function pollForCompletion(predictionId) {
                         reject(new Error('Prediction failed'));
                     } else {
                         // Still processing, wait and try again
-                        setTimeout(() => {
-                            pollForCompletion(predictionId).then(resolve).catch(reject);
-                        }, 1000);
+                        setTimeout(checkStatus, 2000);
                     }
                 });
             });
@@ -379,8 +391,10 @@ async function pollForCompletion(predictionId) {
             });
 
             req.end();
-        });
-    }
+        };
+
+        checkStatus();
+    });
 }
 
 app.listen(PORT, () => {
