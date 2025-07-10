@@ -355,7 +355,7 @@ async function generateVideo(prompt, images) {
     } else {
         // Text-to-video generation - use a different model that doesn't require input_image
         postData = JSON.stringify({
-            version: "stability-ai/stable-video-diffusion",
+            version: "anotherjesse/zeroscope-v2-xl",
             input: {
                 prompt: prompt,
                 negative_prompt: "blurry, low quality, distorted, unrealistic",
