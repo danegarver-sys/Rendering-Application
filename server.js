@@ -75,11 +75,14 @@ app.post('/generate', upload.fields([
 
         // Choose generation method based on inputs
         let result;
+        console.log('About to choose generation method. Uploaded images:', uploadedImages.length);
         if (uploadedImages.length > 0) {
             // Image-to-image generation
+            console.log('Calling image-to-image generation with prompt:', prompt);
             result = await generateImageToImage(prompt, uploadedImages);
         } else {
             // Text-to-image generation
+            console.log('Calling text-to-image generation with prompt:', prompt);
             result = await generateTextToImage(prompt);
         }
 
