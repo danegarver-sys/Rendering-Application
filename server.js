@@ -385,4 +385,8 @@ async function pollForCompletion(predictionId) {
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Environment variables check:');
+    console.log('REPLICATE_API_TOKEN exists:', !!process.env.REPLICATE_API_TOKEN);
+    console.log('REPLICATE_API_TOKEN length:', process.env.REPLICATE_API_TOKEN ? process.env.REPLICATE_API_TOKEN.length : 0);
+    console.log('REPLICATE_API_TOKEN starts with r8_:', process.env.REPLICATE_API_TOKEN ? process.env.REPLICATE_API_TOKEN.startsWith('r8_') : false);
 }); 
