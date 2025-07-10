@@ -36,6 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Prevent multiple submissions
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
+        
         // Collect form data
         const formData = new FormData();
         formData.append('prompt', promptBox.value);
@@ -76,12 +81,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.image) {
+                // Clear the frame completely
                 generatedFrame.innerHTML = '';
+                console.log('Displaying generated image:', data.image);
+                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
                 genImg.alt = 'Generated Rendering';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
+                genImg.style.display = 'block';
+                genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
                 // Add download button
@@ -103,6 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (err) {
             generatedFrame.innerHTML = '<div class="loading-message">Error: ' + err.message + '</div>';
+        } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
         }
     });
 
@@ -156,12 +170,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.image) {
+                // Clear the frame completely
                 generatedFrame.innerHTML = '';
+                console.log('Displaying generated face image:', data.image);
+                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
                 genImg.alt = 'Generated Face Image';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
+                genImg.style.display = 'block';
+                genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
                 // Add download button
