@@ -72,7 +72,9 @@ app.get('/test', (req, res) => {
     res.json({ 
         status: 'ok', 
         message: 'Server is working',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        serverFile: 'server_final.js',
+        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438'
     });
 });
 
@@ -82,7 +84,7 @@ app.get('/test-video', (req, res) => {
     res.json({ 
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
-        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
         videoFrames: 24,
         videoFps: 8
     });
@@ -258,33 +260,25 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
                 num_frames: 24,
-                fps: 8,
-                width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                fps: 8
             }
         });
         console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 num_frames: 24,
-                fps: 8,
-                width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                fps: 8
             }
         });
         console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
@@ -443,6 +437,6 @@ async function pollForCompletion(predictionId) {
 // Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`Video model: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438`);
+    console.log(`Video model: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38`);
     console.log(`Video frames: 24, FPS: 8`);
 }); 
