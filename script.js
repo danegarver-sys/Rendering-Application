@@ -360,62 +360,21 @@ document.addEventListener('DOMContentLoaded', function() {
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Call the video generation endpoint (which now generates cinematic images)
+            // Call the video generation endpoint
             const response = await fetch(`${BACKEND_URL}/generate-video`, {
                 method: 'POST',
                 body: formData
             });
             
             if (!response.ok) {
-                console.log('Video endpoint failed, trying regular image generation as fallback');
-                // Try regular image generation as fallback
-                const fallbackResponse = await fetch(`${BACKEND_URL}/generate`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!fallbackResponse.ok) {
-                    throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
-                }
-                
-                const fallbackData = await fallbackResponse.json();
-                console.log('Fallback image generation response:', fallbackData);
-                
-                if (fallbackData.image) {
-                    // Display the fallback image
-                    generatedFrame.innerHTML = '';
-                    console.log('Displaying fallback image:', fallbackData.image);
-                    
-                    const genImg = document.createElement('img');
-                    genImg.src = fallbackData.image;
-                    genImg.alt = 'Generated Image (Fallback)';
-                    genImg.style.maxWidth = '100%';
-                    genImg.style.height = 'auto';
-                    genImg.style.display = 'block';
-                    genImg.style.margin = '0 auto';
-                    generatedFrame.appendChild(genImg);
-
-                    const downloadBtn = document.createElement('button');
-                    downloadBtn.id = 'downloadBtn';
-                    downloadBtn.textContent = 'Download Image (Fallback)';
-                    downloadBtn.className = 'download-btn';
-                    downloadBtn.onclick = function() {
-                        const link = document.createElement('a');
-                        link.href = fallbackData.image;
-                        link.download = 'fallback_image.png';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    };
-                    generatedFrame.appendChild(downloadBtn);
-                } else {
-                    throw new Error(fallbackData.error || 'Fallback generation failed');
-                }
-                return;
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const data = await response.json();
             console.log('Video generation response data:', data);
+            console.log('Response keys:', Object.keys(data));
+            console.log('Has video property:', 'video' in data);
+            console.log('Has image property:', 'image' in data);
 
             if (data.video) {
                 // Clear the frame completely
@@ -449,6 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (data.image) {
                 // Fallback: if we got an image instead of video, display it
                 console.log('Received image instead of video, displaying as fallback');
+                console.log('Image URL:', data.image);
                 generatedFrame.innerHTML = '';
                 
                 const genImg = document.createElement('img');
@@ -474,6 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 generatedFrame.appendChild(downloadBtn);
             } else {
+                console.log('No video or image found in response');
                 generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Video generation failed') + '</div>';
             }
         } catch (err) {
