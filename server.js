@@ -55,6 +55,18 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Backend is working!', timestamp: new Date().toISOString() });
 });
 
+// Debug route to test basic image generation
+app.get('/test-image', async (req, res) => {
+    console.log('Test image generation route accessed');
+    try {
+        const result = await generateTextToImage("a simple test image", "blurry, low quality");
+        res.json({ message: 'Image generation test successful!', result });
+    } catch (error) {
+        console.error('Test image generation failed:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Debug route to test video endpoint
 app.get('/test-video', (req, res) => {
     console.log('Test video route accessed');
@@ -276,12 +288,15 @@ app.post('/generate-video', handleUpload, async (req, res) => {
 
         // Generate video
         const result = await generateVideo(prompt, uploadedImages, negativePrompt);
+        console.log('Video generation result:', result);
         res.json(result);
     } catch (error) {
         console.error('Video generation error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ 
             error: error.message,
-            details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.'
+            details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
+            stack: error.stack
         });
     }
 });
@@ -708,9 +723,11 @@ async function generateVideo(prompt, images, negativePrompt) {
     }
 
     console.log('VIDEO: Starting simplified video generation approach');
+    console.log('VIDEO: Prompt:', prompt);
+    console.log('VIDEO: Negative prompt:', negativePrompt);
+    console.log('VIDEO: Images count:', images ? images.length : 0);
     
-    // For now, let's generate a high-quality image instead of video
-    // This is more reliable and still provides value to users
+    // Use the most reliable image generation model with cinematic prompts
     let postData;
     
     if (images && images.length > 0) {
@@ -721,11 +738,11 @@ async function generateVideo(prompt, images, negativePrompt) {
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography",
+                prompt: prompt + ", cinematic, high quality, dynamic scene",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_inference_steps: 30,
-                guidance_scale: 7.5,
+                num_inference_steps: 20,
+                guidance_scale: 7.0,
                 strength: 0.7,
                 width: 1024,
                 height: 576
@@ -737,10 +754,10 @@ async function generateVideo(prompt, images, negativePrompt) {
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography",
+                prompt: prompt + ", cinematic, high quality, dynamic scene",
                 negative_prompt: negativePrompt,
-                num_inference_steps: 30,
-                guidance_scale: 7.5,
+                num_inference_steps: 20,
+                guidance_scale: 7.0,
                 width: 1024,
                 height: 576
             }

@@ -405,16 +405,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (err) {
             console.error('Video generation error:', err);
+            let errorMessage = err.message;
+            let errorDetails = '';
+            
+            // Try to parse error details if available
+            try {
+                const errorResponse = await response?.json();
+                if (errorResponse && errorResponse.details) {
+                    errorDetails = errorResponse.details;
+                }
+            } catch (parseError) {
+                console.log('Could not parse error response');
+            }
+            
             generatedFrame.innerHTML = `
                 <div class="loading-message">
-                    <p>Error: ${err.message}</p>
-                    <p>Video generation failed. This could be due to:</p>
+                    <p><strong>Error:</strong> ${errorMessage}</p>
+                    ${errorDetails ? `<p><strong>Details:</strong> ${errorDetails}</p>` : ''}
+                    <p>Cinematic image generation failed. This could be due to:</p>
                     <ul style="text-align: left; margin: 10px 0;">
                         <li>Model availability issues</li>
-                        <li>Complex prompt that the video model couldn't handle</li>
+                        <li>Complex prompt that the model couldn't handle</li>
                         <li>API token or billing issues</li>
+                        <li>Server configuration problems</li>
                     </ul>
-                    <p>Would you like to generate an image instead?</p>
+                    <p>Would you like to generate a regular image instead?</p>
                     <button onclick="generateImageInstead()" style="margin: 10px 5px; padding: 8px 16px; background: #3a7afe; color: white; border: none; border-radius: 4px; cursor: pointer;">
                         Generate Image Instead
                     </button>
