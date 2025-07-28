@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Architectural Rendering Uploader</title>
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <title>Advanced Architectural Rendering Generator</title>
+    <link rel="stylesheet" href="style.css?v=1.2">
 </head>
 <body>
     <div class="main-content">
         <div class="container">
-            <h1>Architectural Rendering Image Uploader</h1>
+            <h1>Advanced Architectural Rendering Generator</h1>
             <form id="uploadForm">
                 <div class="image-section">
                     <label for="imageUpload1">Upload Image 1:</label>
@@ -43,13 +43,15 @@
                 </div>
                 <label for="prompt">Describe how these images will be used for Architectural Rendering:</label>
                 <textarea id="prompt" name="prompt" rows="4" placeholder="Describe your rendering process..."></textarea>
-                <button type="submit">Submit</button>
+                <div class="button-container">
+                    <button type="submit">Generate Image</button>
+                </div>
             </form>
         </div>
         <div class="generated-frame" id="generatedImageFrame">
             <p class="placeholder-text">Your generated rendering will appear here.</p>
         </div>
     </div>
-    <script src="script.js?v=1.3&t=20241201"></script>
+    <script src="script.js?v=1.4&t=20241201"></script>
 </body>
 </html> 
