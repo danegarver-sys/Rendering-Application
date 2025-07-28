@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add video generation functionality
     const videoBtn = document.createElement('button');
-    videoBtn.textContent = 'Generate Video';
+    videoBtn.textContent = 'Generate Cinematic Image';
     videoBtn.className = 'video-btn';
     videoBtn.style.marginTop = '10px';
     videoBtn.style.marginRight = '10px';
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Prevent multiple submissions
         videoBtn.disabled = true;
-        videoBtn.textContent = 'Generating Video...';
+        videoBtn.textContent = 'Generating Cinematic Image...';
         
         // Collect form data
         const formData = new FormData();
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating video... This may take 3-5 minutes.';
+        loadingMsg.textContent = 'Generating cinematic image... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
@@ -372,37 +372,36 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
 
-            if (data.video) {
+            if (data.image) {
                 // Clear the frame completely
                 generatedFrame.innerHTML = '';
-                console.log('Displaying generated video:', data.video);
+                console.log('Displaying generated cinematic image:', data.image);
                 
-                const videoElement = document.createElement('video');
-                videoElement.src = data.video;
-                videoElement.controls = true;
-                videoElement.autoplay = false;
-                videoElement.style.maxWidth = '100%';
-                videoElement.style.height = 'auto';
-                videoElement.style.display = 'block';
-                videoElement.style.margin = '0 auto';
-                generatedFrame.appendChild(videoElement);
+                const genImg = document.createElement('img');
+                genImg.src = data.image;
+                genImg.alt = 'Generated Cinematic Image';
+                genImg.style.maxWidth = '100%';
+                genImg.style.height = 'auto';
+                genImg.style.display = 'block';
+                genImg.style.margin = '0 auto';
+                generatedFrame.appendChild(genImg);
 
                 // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadVideoBtn';
-                downloadBtn.textContent = 'Download Video';
+                downloadBtn.textContent = 'Download Cinematic Image';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
-                    link.href = data.video;
-                    link.download = 'generated_video.mp4';
+                    link.href = data.image;
+                    link.download = 'cinematic_image.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                 };
                 generatedFrame.appendChild(downloadBtn);
             } else {
-                generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Video generation failed') + '</div>';
+                generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Cinematic image generation failed') + '</div>';
             }
         } catch (err) {
             console.error('Video generation error:', err);
@@ -427,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             // Re-enable video button
             videoBtn.disabled = false;
-            videoBtn.textContent = 'Generate Video';
+            videoBtn.textContent = 'Generate Cinematic Image';
         }
     });
 

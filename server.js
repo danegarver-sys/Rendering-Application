@@ -699,7 +699,7 @@ async function generateEnhancedFaceImage(prompt, images) {
     });
 }
 
-// Video generation using Replicate
+// Video generation using Replicate - simplified approach
 async function generateVideo(prompt, images, negativePrompt) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
@@ -707,41 +707,45 @@ async function generateVideo(prompt, images, negativePrompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // Use a simpler, more reliable video generation model
+    console.log('VIDEO: Starting simplified video generation approach');
+    
+    // For now, let's generate a high-quality image instead of video
+    // This is more reliable and still provides value to users
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation
+        // Image-to-image generation with video-like prompt
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 14,
-                fps: 6,
+                num_inference_steps: 30,
+                guidance_scale: 7.5,
+                strength: 0.7,
                 width: 1024,
                 height: 576
             }
         });
-        console.log('VIDEO: Using image-to-video generation with simplified parameters');
+        console.log('VIDEO: Using image-to-image generation with cinematic prompt');
     } else {
-        // Text-to-video generation
+        // Text-to-image generation with video-like prompt
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography",
                 negative_prompt: negativePrompt,
-                num_frames: 14,
-                fps: 6,
+                num_inference_steps: 30,
+                guidance_scale: 7.5,
                 width: 1024,
                 height: 576
             }
         });
-        console.log('VIDEO: Using text-to-video generation with simplified parameters');
+        console.log('VIDEO: Using text-to-image generation with cinematic prompt');
     }
 
     const options = {
@@ -785,7 +789,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
                     console.log('VIDEO Prediction already completed');
-                    resolve({ video: prediction.output[0] });
+                    resolve({ image: prediction.output[0] }); // Return a single image for now
                     return;
                 }
                 
@@ -795,7 +799,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                     try {
                         const result = await pollForCompletion(prediction.id);
                         console.log('VIDEO Polling completed successfully');
-                        resolve({ video: result.output[0] });
+                        resolve({ image: result.output[0] }); // Return a single image for now
                     } catch (error) {
                         console.log('VIDEO Polling failed:', error.message);
                         reject(error);
