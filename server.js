@@ -175,6 +175,99 @@ app.post('/generate-face', handleUpload, async (req, res) => {
     }
 });
 
+// Generate enhanced face images using specialized model
+app.post('/generate-face-enhanced', handleUpload, async (req, res) => {
+    console.log('Generate-face-enhanced endpoint accessed');
+    
+    try {
+        const { prompt, imageType1, imageType2, imageType3 } = req.body;
+        const files = req.files;
+        
+        if (!prompt || prompt.trim() === '') {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+
+        // Process uploaded images
+        const uploadedImages = [];
+        if (files) {
+            for (let i = 1; i <= 3; i++) {
+                const fileKey = `image${i}`;
+                const typeKey = `imageType${i}`;
+                
+                if (files[fileKey] && files[fileKey][0]) {
+                    const file = files[fileKey][0];
+                    const imageType = req.body[typeKey] || 'Photo';
+                    
+                    const base64Image = file.buffer.toString('base64');
+                    const dataUrl = `data:${file.mimetype};base64,${base64Image}`;
+                    
+                    uploadedImages.push({
+                        dataUrl,
+                        type: imageType,
+                        filename: file.originalname
+                    });
+                }
+            }
+        }
+
+        // Generate enhanced face image
+        const result = await generateEnhancedFaceImage(prompt, uploadedImages);
+        res.json(result);
+    } catch (error) {
+        console.error('Enhanced face generation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Generate video from multiple inputs
+app.post('/generate-video', handleUpload, async (req, res) => {
+    console.log('Generate-video endpoint accessed');
+    console.log('Video request headers:', req.headers);
+    console.log('Video request body keys:', Object.keys(req.body));
+    console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
+    
+    try {
+        const { prompt, imageType1, imageType2, imageType3 } = req.body;
+        const files = req.files;
+        
+        console.log('Video generation request:', { prompt, imageType1, imageType2, imageType3 });
+
+        if (!prompt || prompt.trim() === '') {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+
+        // Process uploaded images
+        const uploadedImages = [];
+        if (files) {
+            for (let i = 1; i <= 3; i++) {
+                const fileKey = `image${i}`;
+                const typeKey = `imageType${i}`;
+                
+                if (files[fileKey] && files[fileKey][0]) {
+                    const file = files[fileKey][0];
+                    const imageType = req.body[typeKey] || 'Photo';
+                    
+                    const base64Image = file.buffer.toString('base64');
+                    const dataUrl = `data:${file.mimetype};base64,${base64Image}`;
+                    
+                    uploadedImages.push({
+                        dataUrl,
+                        type: imageType,
+                        filename: file.originalname
+                    });
+                }
+            }
+        }
+
+        // Generate video
+        const result = await generateVideo(prompt, uploadedImages);
+        res.json(result);
+    } catch (error) {
+        console.error('Video generation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Text-to-image generation using Replicate
 async function generateTextToImage(prompt) {
     console.log('TEXT-TO-IMAGE Function called with prompt:', prompt);
@@ -358,7 +451,7 @@ async function generateImageToImage(prompt, images) {
     });
 }
 
-// Face-focused image generation using Replicate
+// Face-focused image generation using specialized face models
 async function generateFaceImage(prompt, images) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
@@ -366,36 +459,42 @@ async function generateFaceImage(prompt, images) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // Use a model optimized for realistic human faces
+    // Use specialized face models with better parameters
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-image with face focus
+        // Image-to-image with specialized face model
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", realistic human face, detailed portrait, high quality, professional photography",
-                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch",
+                prompt: "professional portrait, " + prompt + ", beautiful face, sharp eyes, natural skin texture, studio lighting, 8k uhd, dslr, high quality photo, realistic, detailed",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy, extra limbs, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, extra limbs, extra arms, mutated hands, missing arms, missing legs, extra legs, mutated hands, fused fingers, too many fingers, long neck, cross-eyed, mutated eyes, sick, disfigured, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, mutated hands, fused fingers, too many fingers, long neck",
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_inference_steps: 30,
+                guidance_scale: 7.0,
+                strength: 0.7,
                 width: 1024,
                 height: 1024
             }
         });
-        console.log('FACE: Using image-to-image with face focus');
+        console.log('FACE: Using image-to-image with specialized face model');
     } else {
-        // Text-to-image with face focus
+        // Text-to-image with face-optimized model
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", realistic human face, detailed portrait, high quality, professional photography",
-                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch",
+                prompt: "professional portrait, " + prompt + ", beautiful face, sharp eyes, natural skin texture, studio lighting, 8k uhd, dslr, high quality photo, realistic, detailed, perfect face",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy, extra limbs, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, extra limbs, extra arms, mutated hands, missing arms, missing legs, extra legs, mutated hands, fused fingers, too many fingers, long neck, cross-eyed, mutated eyes, sick, disfigured, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, mutated hands, fused fingers, too many fingers, long neck",
+                num_inference_steps: 30,
+                guidance_scale: 7.0,
                 width: 1024,
                 height: 1024
             }
         });
-        console.log('FACE: Using text-to-image with face focus');
+        console.log('FACE: Using text-to-image with face-optimized model');
     }
 
     const options = {
@@ -454,6 +553,235 @@ async function generateFaceImage(prompt, images) {
                 
                 // If we get here, something unexpected happened
                 console.log('FACE Unexpected status:', prediction.status);
+                reject(new Error(`Unexpected prediction status: ${prediction.status}`));
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
+    });
+}
+
+// Enhanced face image generation using specialized model
+async function generateEnhancedFaceImage(prompt, images) {
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    
+    if (!REPLICATE_API_TOKEN) {
+        throw new Error('REPLICATE_API_TOKEN not configured');
+    }
+
+    // Use specialized face models with better parameters
+    let postData;
+    
+    if (images && images.length > 0) {
+        // Image-to-image with specialized face model
+        const baseImage = images[0];
+        const base64Data = baseImage.dataUrl.split(',')[1];
+        
+        postData = JSON.stringify({
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            input: {
+                prompt: "professional portrait, " + prompt + ", beautiful face, sharp eyes, natural skin texture, studio lighting, 8k uhd, dslr, high quality photo, realistic, detailed, perfect face",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy, extra limbs, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, extra limbs, extra arms, mutated hands, missing arms, missing legs, extra legs, mutated hands, fused fingers, too many fingers, long neck, cross-eyed, mutated eyes, sick, disfigured, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, mutated hands, fused fingers, too many fingers, long neck",
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_inference_steps: 30,
+                guidance_scale: 7.0,
+                strength: 0.7,
+                width: 1024,
+                height: 1024
+            }
+        });
+        console.log('ENHANCED FACE: Using image-to-image with specialized face model');
+    } else {
+        // Text-to-image with face-optimized model
+        postData = JSON.stringify({
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            input: {
+                prompt: "professional portrait, " + prompt + ", beautiful face, sharp eyes, natural skin texture, studio lighting, 8k uhd, dslr, high quality photo, realistic, detailed, perfect face",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy, extra limbs, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, extra limbs, extra arms, mutated hands, missing arms, missing legs, extra legs, mutated hands, fused fingers, too many fingers, long neck, cross-eyed, mutated eyes, sick, disfigured, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, mutated hands, fused fingers, too many fingers, long neck",
+                num_inference_steps: 30,
+                guidance_scale: 7.0,
+                width: 1024,
+                height: 1024
+            }
+        });
+        console.log('ENHANCED FACE: Using text-to-image with face-optimized model');
+    }
+
+    const options = {
+        hostname: 'api.replicate.com',
+        port: 443,
+        path: '/v1/predictions',
+        method: 'POST',
+        headers: {
+            'Authorization': `Token ${REPLICATE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', async () => {
+                console.log('ENHANCED FACE API Response received:', data);
+                if (res.statusCode !== 200 && res.statusCode !== 201) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                console.log('ENHANCED FACE Prediction status:', prediction.status);
+                
+                // Check if prediction was created successfully
+                if (prediction.error) {
+                    reject(new Error(`Replicate API error: ${prediction.error}`));
+                    return;
+                }
+                
+                // If prediction is already completed, return it
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    console.log('ENHANCED FACE Prediction already completed');
+                    resolve({ image: prediction.output[0] });
+                    return;
+                }
+                
+                // If prediction is starting or processing, poll for completion
+                if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    console.log('ENHANCED FACE Prediction starting/processing, polling for completion...');
+                    try {
+                        const result = await pollForCompletion(prediction.id);
+                        console.log('ENHANCED FACE Polling completed successfully');
+                        resolve({ image: result.output[0] });
+                    } catch (error) {
+                        console.log('ENHANCED FACE Polling failed:', error.message);
+                        reject(error);
+                    }
+                    return;
+                }
+                
+                // If we get here, something unexpected happened
+                console.log('ENHANCED FACE Unexpected status:', prediction.status);
+                reject(new Error(`Unexpected prediction status: ${prediction.status}`));
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
+    });
+}
+
+// Video generation using Replicate
+async function generateVideo(prompt, images) {
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    
+    if (!REPLICATE_API_TOKEN) {
+        throw new Error('REPLICATE_API_TOKEN not configured');
+    }
+
+    // Use a video generation model
+    let postData;
+    
+    if (images && images.length > 0) {
+        // Image-to-video generation
+        const baseImage = images[0];
+        const base64Data = baseImage.dataUrl.split(',')[1];
+        
+        postData = JSON.stringify({
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            input: {
+                prompt: prompt + ", cinematic, high quality, smooth motion",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, fast motion, jerky",
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
+            }
+        });
+        console.log('VIDEO: Using image-to-video generation');
+    } else {
+        // Text-to-video generation
+        postData = JSON.stringify({
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            input: {
+                prompt: prompt + ", cinematic, high quality, smooth motion",
+                negative_prompt: "blurry, low quality, distorted, unrealistic, fast motion, jerky",
+                num_frames: 24,
+                fps: 8,
+                width: 1024,
+                height: 576
+            }
+        });
+        console.log('VIDEO: Using text-to-video generation');
+    }
+
+    const options = {
+        hostname: 'api.replicate.com',
+        port: 443,
+        path: '/v1/predictions',
+        method: 'POST',
+        headers: {
+            'Authorization': `Token ${REPLICATE_API_TOKEN}`,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', async () => {
+                console.log('VIDEO API Response received:', data);
+                if (res.statusCode !== 200 && res.statusCode !== 201) {
+                    reject(new Error(`Replicate API error: ${data}`));
+                    return;
+                }
+                const prediction = JSON.parse(data);
+                console.log('VIDEO Prediction status:', prediction.status);
+                
+                // Check if prediction was created successfully
+                if (prediction.error) {
+                    reject(new Error(`Replicate API error: ${prediction.error}`));
+                    return;
+                }
+                
+                // If prediction is already completed, return it
+                if (prediction.status === 'succeeded' && prediction.output) {
+                    console.log('VIDEO Prediction already completed');
+                    resolve({ video: prediction.output[0] });
+                    return;
+                }
+                
+                // If prediction is starting or processing, poll for completion
+                if (prediction.status === 'starting' || prediction.status === 'processing') {
+                    console.log('VIDEO Prediction starting/processing, polling for completion...');
+                    try {
+                        const result = await pollForCompletion(prediction.id);
+                        console.log('VIDEO Polling completed successfully');
+                        resolve({ video: result.output[0] });
+                    } catch (error) {
+                        console.log('VIDEO Polling failed:', error.message);
+                        reject(error);
+                    }
+                    return;
+                }
+                
+                // If we get here, something unexpected happened
+                console.log('VIDEO Unexpected status:', prediction.status);
                 reject(new Error(`Unexpected prediction status: ${prediction.status}`));
             });
         });
