@@ -2,10 +2,10 @@
   "name": "architectural-rendering-backend",
   "version": "1.0.0",
   "description": "Backend for architectural rendering image generation",
-  "main": "server_final.js",
+  "main": "server_working.js",
   "scripts": {
-    "start": "node server_final.js",
-    "dev": "nodemon server_final.js"
+    "start": "node server_working.js",
+    "dev": "nodemon server_working.js"
   },
   "dependencies": {
     "express": "^4.18.2",
