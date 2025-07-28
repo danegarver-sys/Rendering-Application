@@ -415,7 +415,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <li>Complex prompt that the video model couldn't handle</li>
                         <li>API token or billing issues</li>
                     </ul>
-                    <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #3a7afe; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <p>Would you like to generate an image instead?</p>
+                    <button onclick="generateImageInstead()" style="margin: 10px 5px; padding: 8px 16px; background: #3a7afe; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Generate Image Instead
+                    </button>
+                    <button onclick="location.reload()" style="margin: 10px 5px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
                         Try Again
                     </button>
                 </div>
@@ -426,6 +430,85 @@ document.addEventListener('DOMContentLoaded', function() {
             videoBtn.textContent = 'Generate Video';
         }
     });
+
+    // Fallback function to generate image instead of video
+    window.generateImageInstead = async function() {
+        const generatedFrame = document.getElementById('generatedImageFrame');
+        generatedFrame.innerHTML = '';
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'loading-message';
+        loadingMsg.textContent = 'Generating image instead... This may take 1-2 minutes.';
+        generatedFrame.appendChild(spinner);
+        generatedFrame.appendChild(loadingMsg);
+
+        try {
+            // Collect form data
+            const formData = new FormData();
+            formData.append('prompt', promptBox.value);
+            if (negativePromptBox.value.trim()) {
+                formData.append('negativePrompt', negativePromptBox.value);
+            }
+            
+            // Add images and their types
+            for (let i = 1; i <= 3; i++) {
+                const fileInput = document.getElementById('imageUpload' + i);
+                const typeSelect = document.getElementById('imageType' + i);
+                
+                if (fileInput.files[0]) {
+                    formData.append('image' + i, fileInput.files[0]);
+                    formData.append('imageType' + i, typeSelect.value);
+                }
+            }
+
+            // Call the regular image generation endpoint
+            const response = await fetch(`${BACKEND_URL}/generate`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+
+            if (data.image) {
+                // Clear the frame completely
+                generatedFrame.innerHTML = '';
+                console.log('Displaying fallback image:', data.image);
+                
+                const genImg = document.createElement('img');
+                genImg.src = data.image;
+                genImg.alt = 'Generated Image (Video Fallback)';
+                genImg.style.maxWidth = '100%';
+                genImg.style.height = 'auto';
+                genImg.style.display = 'block';
+                genImg.style.margin = '0 auto';
+                generatedFrame.appendChild(genImg);
+
+                // Add download button
+                const downloadBtn = document.createElement('button');
+                downloadBtn.id = 'downloadBtn';
+                downloadBtn.textContent = 'Download Image';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.href = data.image;
+                    link.download = 'generated_image.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                generatedFrame.appendChild(downloadBtn);
+            } else {
+                generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Image generation failed') + '</div>';
+            }
+        } catch (err) {
+            generatedFrame.innerHTML = '<div class="loading-message">Error: ' + err.message + '</div>';
+        }
+    };
 
     // Add the face and video buttons to the button container
     const buttonContainer = uploadForm.querySelector('.button-container');

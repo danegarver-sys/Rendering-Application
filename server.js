@@ -707,7 +707,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // Use a more reliable video generation model
+    // Use a simpler, more reliable video generation model
     let postData;
     
     if (images && images.length > 0) {
@@ -721,15 +721,13 @@ async function generateVideo(prompt, images, negativePrompt) {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 16,
-                fps: 8,
+                num_frames: 14,
+                fps: 6,
                 width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                height: 576
             }
         });
-        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using image-to-video generation with simplified parameters');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
@@ -737,15 +735,13 @@ async function generateVideo(prompt, images, negativePrompt) {
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 16,
-                fps: 8,
+                num_frames: 14,
+                fps: 6,
                 width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                height: 576
             }
         });
-        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using text-to-video generation with simplified parameters');
     }
 
     const options = {
@@ -761,6 +757,9 @@ async function generateVideo(prompt, images, negativePrompt) {
     };
 
     return new Promise((resolve, reject) => {
+        console.log('VIDEO: Sending request to Replicate API');
+        console.log('VIDEO: Request data:', postData.substring(0, 500) + '...');
+        
         const req = https.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => {
@@ -768,8 +767,10 @@ async function generateVideo(prompt, images, negativePrompt) {
             });
             res.on('end', async () => {
                 console.log('VIDEO API Response received:', data);
+                console.log('VIDEO API Status code:', res.statusCode);
                 if (res.statusCode !== 200 && res.statusCode !== 201) {
-                    reject(new Error(`Replicate API error: ${data}`));
+                    console.log('VIDEO API Error response:', data);
+                    reject(new Error(`Replicate API error (${res.statusCode}): ${data}`));
                     return;
                 }
                 const prediction = JSON.parse(data);
