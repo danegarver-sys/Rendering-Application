@@ -754,33 +754,29 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8,
+                num_frames: 14,
+                fps: 6,
                 width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                height: 576
             }
         });
         console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 24,
-                fps: 8,
+                num_frames: 14,
+                fps: 6,
                 width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                height: 576
             }
         });
         console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
@@ -810,16 +806,24 @@ async function generateVideo(prompt, images, negativePrompt) {
             res.on('end', async () => {
                 console.log('VIDEO API Response received:', data);
                 console.log('VIDEO API Status code:', res.statusCode);
+                console.log('VIDEO API Response length:', data.length);
+                console.log('VIDEO API Response preview:', data.substring(0, 500));
+                
                 if (res.statusCode !== 200 && res.statusCode !== 201) {
                     console.log('VIDEO API Error response:', data);
                     reject(new Error(`Replicate API error (${res.statusCode}): ${data}`));
                     return;
                 }
+                
                 const prediction = JSON.parse(data);
+                console.log('VIDEO Prediction full response:', prediction);
                 console.log('VIDEO Prediction status:', prediction.status);
+                console.log('VIDEO Prediction output type:', typeof prediction.output);
+                console.log('VIDEO Prediction output:', prediction.output);
                 
                 // Check if prediction was created successfully
                 if (prediction.error) {
+                    console.log('VIDEO Prediction error:', prediction.error);
                     reject(new Error(`Replicate API error: ${prediction.error}`));
                     return;
                 }

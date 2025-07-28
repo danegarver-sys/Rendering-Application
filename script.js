@@ -2,6 +2,9 @@
 // Version 2.0 - Video Generation Enabled
 console.log('=== SCRIPT LOADED: Version 2.0 - Video Generation Enabled ===');
 
+// Backend URL configuration
+const BACKEND_URL = 'https://rendering-application.onrender.com';
+
 // Test server connectivity
 async function testServerConnection() {
     try {
@@ -16,12 +19,7 @@ async function testServerConnection() {
     }
 }
 
-// Backend URL configuration
 document.addEventListener('DOMContentLoaded', function() {
-    // Backend URL - update this when you deploy to Render.com
-    const BACKEND_URL = 'https://rendering-application.onrender.com'; // Your deployed Render URL
-    
-    // Debug: Log the backend URL to console
     console.log('Backend URL:', BACKEND_URL);
     
     // Test server connectivity on page load
