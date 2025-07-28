@@ -1,3 +1,8 @@
+// Advanced Architectural Rendering Generator - Frontend
+// Version 1.8 - Video Generation Enabled
+console.log('=== SCRIPT LOADED: Version 1.8 - Video Generation Enabled ===');
+
+// Backend URL configuration
 document.addEventListener('DOMContentLoaded', function() {
     // Backend URL - update this when you deploy to Render.com
     const BACKEND_URL = 'https://rendering-application.onrender.com'; // Your deployed Render URL
