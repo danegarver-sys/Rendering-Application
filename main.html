@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Architectural Rendering Generator</title>
+    <link rel="stylesheet" href="style.css?v=1.2">
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <h1>Advanced Architectural Rendering Generator</h1>
+            <form id="uploadForm">
+                <div class="image-section">
+                    <label for="imageUpload1">Upload Image 1:</label>
+                    <input type="file" id="imageUpload1" name="image1" accept="image/png, image/jpeg">
+                    <select id="imageType1" name="imageType1">
+                        <option value="Photo">Photo</option>
+                        <option value="Sketch">Sketch</option>
+                        <option value="3D Image">3D Image</option>
+                    </select>
+                    <div id="imagePreview1" class="image-preview"></div>
+                </div>
+                <div class="image-section">
+                    <label for="imageUpload2">Upload Image 2:</label>
+                    <input type="file" id="imageUpload2" name="image2" accept="image/png, image/jpeg">
+                    <select id="imageType2" name="imageType2">
+                        <option value="Photo">Photo</option>
+                        <option value="Sketch">Sketch</option>
+                        <option value="3D Image">3D Image</option>
+                    </select>
+                    <div id="imagePreview2" class="image-preview"></div>
+                </div>
+                <div class="image-section">
+                    <label for="imageUpload3">Upload Image 3:</label>
+                    <input type="file" id="imageUpload3" name="image3" accept="image/png, image/jpeg">
+                    <select id="imageType3" name="imageType3">
+                        <option value="Photo">Photo</option>
+                        <option value="Sketch">Sketch</option>
+                        <option value="3D Image">3D Image</option>
+                    </select>
+                    <div id="imagePreview3" class="image-preview"></div>
+                </div>
+                <label for="prompt">Describe how these images will be used for Architectural Rendering:</label>
+                <textarea id="prompt" name="prompt" rows="4" placeholder="Describe your rendering process..."></textarea>
+                
+                <label for="negativePrompt">Negative Prompt (what to avoid):</label>
+                <textarea id="negativePrompt" name="negativePrompt" rows="3" placeholder="Describe what you don't want in the image (optional)..."></textarea>
+                
+                <div class="button-container">
+                    <button type="submit">Generate Image</button>
+                </div>
+            </form>
+        </div>
+        <div class="generated-frame" id="generatedImageFrame">
+            <p class="placeholder-text">Your generated rendering will appear here.</p>
+        </div>
+    </div>
+    <script src="app.js?v=1.0&t=20241201_1430&new=app"></script>
+</body>
+</html> 
