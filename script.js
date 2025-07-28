@@ -1,6 +1,6 @@
 // Advanced Architectural Rendering Generator - Frontend
-// Version 1.8 - Video Generation Enabled
-console.log('=== SCRIPT LOADED: Version 1.8 - Video Generation Enabled ===');
+// Version 1.9 - Video Generation Enabled
+console.log('=== SCRIPT LOADED: Version 1.9 - Video Generation Enabled ===');
 
 // Backend URL configuration
 document.addEventListener('DOMContentLoaded', function() {
