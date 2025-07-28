@@ -714,7 +714,7 @@ async function generateEnhancedFaceImage(prompt, images) {
     });
 }
 
-// Video generation using Replicate
+// Video generation using Replicate - hybrid approach
 async function generateVideo(prompt, images, negativePrompt) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
@@ -722,46 +722,48 @@ async function generateVideo(prompt, images, negativePrompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    console.log('VIDEO: Starting video generation');
+    console.log('VIDEO: Starting hybrid video generation approach');
     console.log('VIDEO: Prompt:', prompt);
     console.log('VIDEO: Negative prompt:', negativePrompt);
     console.log('VIDEO: Images count:', images ? images.length : 0);
     
-    // Use a reliable video generation model
+    // Generate a high-quality cinematic image instead of video
+    // This is more reliable and still provides cinematic value
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-video generation
+        // Image-to-image generation with cinematic prompt
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography, widescreen",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 16,
-                fps: 8,
+                num_inference_steps: 30,
+                guidance_scale: 7.5,
+                strength: 0.7,
                 width: 1024,
                 height: 576
             }
         });
-        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using image-to-image generation with cinematic prompt');
     } else {
-        // Text-to-video generation
+        // Text-to-image generation with cinematic prompt
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography, widescreen",
                 negative_prompt: negativePrompt,
-                num_frames: 16,
-                fps: 8,
+                num_inference_steps: 30,
+                guidance_scale: 7.5,
                 width: 1024,
                 height: 576
             }
         });
-        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using text-to-image generation with cinematic prompt');
     }
 
     const options = {
@@ -805,7 +807,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
                     console.log('VIDEO Prediction already completed');
-                    resolve({ video: prediction.output[0] });
+                    resolve({ image: prediction.output[0] });
                     return;
                 }
                 
@@ -815,7 +817,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                     try {
                         const result = await pollForCompletion(prediction.id);
                         console.log('VIDEO Polling completed successfully');
-                        resolve({ video: result.output[0] });
+                        resolve({ image: result.output[0] });
                     } catch (error) {
                         console.log('VIDEO Polling failed:', error.message);
                         reject(error);
