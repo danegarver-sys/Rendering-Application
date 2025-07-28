@@ -286,13 +286,18 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             imageCount: uploadedImages.length
         });
 
-        // Generate video
+        // Generate video (now cinematic image)
         const result = await generateVideo(prompt, uploadedImages, negativePrompt);
         console.log('Video generation result:', result);
         res.json(result);
     } catch (error) {
         console.error('Video generation error:', error);
         console.error('Error stack:', error.stack);
+        console.error('Error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
         res.status(500).json({ 
             error: error.message,
             details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
@@ -739,11 +744,11 @@ async function generateVideo(prompt, images, negativePrompt) {
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography, widescreen",
+                prompt: prompt + ", cinematic, high quality, dynamic scene",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_inference_steps: 30,
-                guidance_scale: 7.5,
+                num_inference_steps: 20,
+                guidance_scale: 7.0,
                 strength: 0.7,
                 width: 1024,
                 height: 576
@@ -755,10 +760,10 @@ async function generateVideo(prompt, images, negativePrompt) {
         postData = JSON.stringify({
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
-                prompt: prompt + ", cinematic, high quality, dynamic scene, motion blur, professional photography, widescreen",
+                prompt: prompt + ", cinematic, high quality, dynamic scene",
                 negative_prompt: negativePrompt,
-                num_inference_steps: 30,
-                guidance_scale: 7.5,
+                num_inference_steps: 20,
+                guidance_scale: 7.0,
                 width: 1024,
                 height: 576
             }
