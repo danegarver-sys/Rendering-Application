@@ -49,10 +49,14 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// Debug route to test if server is responding
+// Test endpoint to verify server is working
 app.get('/test', (req, res) => {
-    console.log('Test route accessed');
-    res.json({ message: 'Backend is working!', timestamp: new Date().toISOString() });
+    console.log('Test endpoint accessed');
+    res.json({ 
+        status: 'ok', 
+        message: 'Server is working',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Debug route to test basic image generation
@@ -239,10 +243,13 @@ app.post('/generate-face-enhanced', handleUpload, async (req, res) => {
 
 // Generate video from multiple inputs
 app.post('/generate-video', handleUpload, async (req, res) => {
-    console.log('Generate-video endpoint accessed');
+    console.log('=== VIDEO ENDPOINT ACCESSED ===');
+    console.log('Video request method:', req.method);
+    console.log('Video request URL:', req.url);
     console.log('Video request headers:', req.headers);
     console.log('Video request body keys:', Object.keys(req.body));
     console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
+    console.log('Video request body content:', req.body);
     
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;

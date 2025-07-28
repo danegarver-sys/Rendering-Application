@@ -2,6 +2,20 @@
 // Version 2.0 - Video Generation Enabled
 console.log('=== SCRIPT LOADED: Version 2.0 - Video Generation Enabled ===');
 
+// Test server connectivity
+async function testServerConnection() {
+    try {
+        console.log('Testing server connection...');
+        const response = await fetch(`${BACKEND_URL}/test`);
+        const data = await response.json();
+        console.log('Server test response:', data);
+        return true;
+    } catch (error) {
+        console.error('Server connection test failed:', error);
+        return false;
+    }
+}
+
 // Backend URL configuration
 document.addEventListener('DOMContentLoaded', function() {
     // Backend URL - update this when you deploy to Render.com
@@ -10,6 +24,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Log the backend URL to console
     console.log('Backend URL:', BACKEND_URL);
     
+    // Test server connectivity on page load
+    testServerConnection().then(isConnected => {
+        if (isConnected) {
+            console.log('✅ Server connection successful');
+        } else {
+            console.log('❌ Server connection failed');
+        }
+    });
+
     function setupImageUpload(inputId, previewId) {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
