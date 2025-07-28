@@ -371,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Video generation response data:', data);
 
             if (data.video) {
                 // Clear the frame completely
@@ -396,6 +397,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     const link = document.createElement('a');
                     link.href = data.video;
                     link.download = 'generated_video.mp4';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                generatedFrame.appendChild(downloadBtn);
+            } else if (data.image) {
+                // Fallback: if we got an image instead of video, display it
+                console.log('Received image instead of video, displaying as fallback');
+                generatedFrame.innerHTML = '';
+                
+                const genImg = document.createElement('img');
+                genImg.src = data.image;
+                genImg.alt = 'Generated Image (Video Fallback)';
+                genImg.style.maxWidth = '100%';
+                genImg.style.height = 'auto';
+                genImg.style.display = 'block';
+                genImg.style.margin = '0 auto';
+                generatedFrame.appendChild(genImg);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.id = 'downloadBtn';
+                downloadBtn.textContent = 'Download Image (Video Failed)';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.href = data.image;
+                    link.download = 'fallback_image.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
