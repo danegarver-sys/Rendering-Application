@@ -80,6 +80,9 @@ app.post('/generate', handleUpload, async (req, res) => {
             return res.status(400).json({ error: 'Prompt is required' });
         }
 
+        // Get negative prompt if provided
+        const negativePrompt = req.body.negativePrompt || "blurry, low quality, distorted, unrealistic";
+
         // Process uploaded images
         const uploadedImages = [];
         if (files) {
@@ -112,11 +115,11 @@ app.post('/generate', handleUpload, async (req, res) => {
         if (uploadedImages.length > 0) {
             // Image-to-image generation
             console.log('Calling image-to-image generation with prompt:', prompt);
-            result = await generateImageToImage(prompt, uploadedImages);
+            result = await generateImageToImage(prompt, uploadedImages, negativePrompt);
         } else {
             // Text-to-image generation
             console.log('Calling text-to-image generation with prompt:', prompt);
-            result = await generateTextToImage(prompt);
+            result = await generateTextToImage(prompt, negativePrompt);
         }
 
         res.json(result);
@@ -143,6 +146,9 @@ app.post('/generate-face', handleUpload, async (req, res) => {
             return res.status(400).json({ error: 'Prompt is required' });
         }
 
+        // Get negative prompt if provided
+        const negativePrompt = req.body.negativePrompt || "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy";
+
         // Process uploaded images
         const uploadedImages = [];
         if (files) {
@@ -167,7 +173,7 @@ app.post('/generate-face', handleUpload, async (req, res) => {
         }
 
         // Generate face-focused image
-        const result = await generateFaceImage(prompt, uploadedImages);
+        const result = await generateFaceImage(prompt, uploadedImages, negativePrompt);
         res.json(result);
     } catch (error) {
         console.error('Face generation error:', error);
@@ -236,6 +242,9 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             return res.status(400).json({ error: 'Prompt is required' });
         }
 
+        // Get negative prompt if provided
+        const negativePrompt = req.body.negativePrompt || "blurry, low quality, distorted, unrealistic, fast motion, jerky";
+
         // Process uploaded images
         const uploadedImages = [];
         if (files) {
@@ -260,7 +269,7 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         }
 
         // Generate video
-        const result = await generateVideo(prompt, uploadedImages);
+        const result = await generateVideo(prompt, uploadedImages, negativePrompt);
         res.json(result);
     } catch (error) {
         console.error('Video generation error:', error);
@@ -269,7 +278,7 @@ app.post('/generate-video', handleUpload, async (req, res) => {
 });
 
 // Text-to-image generation using Replicate
-async function generateTextToImage(prompt) {
+async function generateTextToImage(prompt, negativePrompt) {
     console.log('TEXT-TO-IMAGE Function called with prompt:', prompt);
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
@@ -277,17 +286,17 @@ async function generateTextToImage(prompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    const postData = JSON.stringify({
-        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
-        input: {
-            prompt: prompt,
-            negative_prompt: "blurry, low quality, distorted, unrealistic",
-            num_inference_steps: 50,
-            guidance_scale: 7.5,
-            width: 1024,
-            height: 1024
-        }
-    });
+            const postData = JSON.stringify({
+            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            input: {
+                prompt: prompt,
+                negative_prompt: negativePrompt,
+                num_inference_steps: 50,
+                guidance_scale: 7.5,
+                width: 1024,
+                height: 1024
+            }
+        });
 
     const options = {
         hostname: 'api.replicate.com',
@@ -362,7 +371,7 @@ async function generateTextToImage(prompt) {
 }
 
 // Image-to-image generation using Replicate
-async function generateImageToImage(prompt, images) {
+async function generateImageToImage(prompt, images, negativePrompt) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     if (!REPLICATE_API_TOKEN) {
@@ -375,19 +384,19 @@ async function generateImageToImage(prompt, images) {
     // Remove data URL prefix to get just the base64
     const base64Data = baseImage.dataUrl.split(',')[1];
 
-    const postData = JSON.stringify({
-        version: "c221b2b8ef527988fb59bf24a8b97c4561f1c671f73bd389f866bfb27c061316",
-        input: {
-            prompt: prompt,
-            negative_prompt: "blurry, low quality, distorted, unrealistic",
-            image: `data:image/jpeg;base64,${base64Data}`,
-            num_inference_steps: 50,
-            guidance_scale: 7.5,
-            strength: 0.75,
-            width: 1024,
-            height: 1024
-        }
-    });
+    const         postData = JSON.stringify({
+            version: "c221b2b8ef527988fb59bf24a8b97c4561f1c671f73bd389f866bfb27c061316",
+            input: {
+                prompt: prompt,
+                negative_prompt: negativePrompt,
+                image: `data:image/jpeg;base64,${base64Data}`,
+                num_inference_steps: 50,
+                guidance_scale: 7.5,
+                strength: 0.75,
+                width: 1024,
+                height: 1024
+            }
+        });
 
     const options = {
         hostname: 'api.replicate.com',
@@ -452,7 +461,7 @@ async function generateImageToImage(prompt, images) {
 }
 
 // Face-focused image generation using specialized face models
-async function generateFaceImage(prompt, images) {
+async function generateFaceImage(prompt, images, negativePrompt) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     if (!REPLICATE_API_TOKEN) {
@@ -471,7 +480,7 @@ async function generateFaceImage(prompt, images) {
             version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
             input: {
                 prompt: "professional portrait, " + prompt + ", beautiful face, sharp eyes, natural skin texture, studio lighting, 8k uhd, dslr, high quality photo, realistic, detailed",
-                negative_prompt: "blurry, low quality, distorted, unrealistic, cartoon, anime, painting, sketch, deformed, ugly, bad anatomy, extra limbs, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, extra limbs, extra arms, mutated hands, missing arms, missing legs, extra legs, mutated hands, fused fingers, too many fingers, long neck, cross-eyed, mutated eyes, sick, disfigured, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, mutated hands, fused fingers, too many fingers, long neck",
+                negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
                 num_inference_steps: 30,
                 guidance_scale: 7.0,
@@ -682,7 +691,7 @@ async function generateEnhancedFaceImage(prompt, images) {
 }
 
 // Video generation using Replicate
-async function generateVideo(prompt, images) {
+async function generateVideo(prompt, images, negativePrompt) {
     const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
     
     if (!REPLICATE_API_TOKEN) {
@@ -701,7 +710,7 @@ async function generateVideo(prompt, images) {
             version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
-                negative_prompt: "blurry, low quality, distorted, unrealistic, fast motion, jerky",
+                negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
                 num_frames: 24,
                 fps: 8,
@@ -716,7 +725,7 @@ async function generateVideo(prompt, images) {
             version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
-                negative_prompt: "blurry, low quality, distorted, unrealistic, fast motion, jerky",
+                negative_prompt: negativePrompt,
                 num_frames: 24,
                 fps: 8,
                 width: 1024,

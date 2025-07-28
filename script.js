@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const uploadForm = document.getElementById('uploadForm');
     const promptBox = document.getElementById('prompt');
+    const negativePromptBox = document.getElementById('negativePrompt');
 
     uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -44,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Collect form data
         const formData = new FormData();
         formData.append('prompt', promptBox.value);
+        if (negativePromptBox.value.trim()) {
+            formData.append('negativePrompt', negativePromptBox.value);
+        }
         
         // Add images and their types
         for (let i = 1; i <= 3; i++) {
@@ -137,6 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Collect form data
         const formData = new FormData();
         formData.append('prompt', promptBox.value);
+        if (negativePromptBox.value.trim()) {
+            formData.append('negativePrompt', negativePromptBox.value);
+        }
         
         // Add images and their types
         for (let i = 1; i <= 3; i++) {
@@ -230,6 +237,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Collect form data
         const formData = new FormData();
         formData.append('prompt', promptBox.value);
+        if (negativePromptBox.value.trim()) {
+            formData.append('negativePrompt', negativePromptBox.value);
+        }
         
         // Add images and their types
         for (let i = 1; i <= 3; i++) {
@@ -323,6 +333,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Collect form data
         const formData = new FormData();
         formData.append('prompt', promptBox.value);
+        if (negativePromptBox.value.trim()) {
+            formData.append('negativePrompt', negativePromptBox.value);
+        }
         
         // Add images and their types
         for (let i = 1; i <= 3; i++) {
@@ -402,7 +415,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add the face and video buttons to the button container
     const buttonContainer = uploadForm.querySelector('.button-container');
+    console.log('Button container found:', buttonContainer);
+    
     buttonContainer.appendChild(faceBtn);
+    console.log('Face button added');
+    
     buttonContainer.appendChild(enhancedFaceBtn);
+    console.log('Enhanced face button added');
+    
     buttonContainer.appendChild(videoBtn);
+    console.log('Video button added');
+    
+    console.log('All buttons added to container. Total buttons:', buttonContainer.children.length);
 });
