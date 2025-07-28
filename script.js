@@ -1,6 +1,7 @@
 // Advanced Architectural Rendering Generator - Frontend
-// Version 2.1 - Video Generation Enabled
-console.log('=== SCRIPT LOADED: Version 2.1 - Video Generation Enabled ===');
+// Version 2.2 - Video Generation Enabled - CACHE BUST
+console.log('=== SCRIPT LOADED: Version 2.2 - Video Generation Enabled ===');
+console.log('=== CACHE BUST: Unique identifier to force refresh ===');
 
 // Backend URL configuration - GLOBAL SCOPE
 const BACKEND_URL = 'https://rendering-application.onrender.com';
