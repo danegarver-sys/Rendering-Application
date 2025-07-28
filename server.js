@@ -760,37 +760,37 @@ async function generateVideo(prompt, images, negativePrompt) {
     console.log('VIDEO: Negative prompt:', negativePrompt);
     console.log('VIDEO: Images count:', images ? images.length : 0);
     
-    // Temporarily use a working image model for testing
+    // Use the working video model that was working before
     let postData;
     
     if (images && images.length > 0) {
-        // Image-to-image generation (temporary)
+        // Image-to-video generation
         const baseImage = images[0];
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
-                prompt: prompt + ", cinematic, high quality, architectural rendering",
+                prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_inference_steps: 20,
-                guidance_scale: 7.5
+                num_frames: 24,
+                fps: 8
             }
         });
-        console.log('VIDEO: Using image-to-image generation (temporary)');
+        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
     } else {
-        // Text-to-image generation (temporary)
+        // Text-to-video generation
         postData = JSON.stringify({
-            version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
-                prompt: prompt + ", cinematic, high quality, architectural rendering",
+                prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_inference_steps: 20,
-                guidance_scale: 7.5
+                num_frames: 24,
+                fps: 8
             }
         });
-        console.log('VIDEO: Using text-to-image generation (temporary)');
+        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
     }
 
     const options = {
@@ -842,7 +842,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
                     console.log('VIDEO Prediction already completed');
-                    resolve({ image: prediction.output[0] }); // Temporary: return image instead of video
+                    resolve({ video: prediction.output[0] }); // Return actual video
                     return;
                 }
                 
@@ -852,7 +852,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                     try {
                         const result = await pollForCompletion(prediction.id);
                         console.log('VIDEO Polling completed successfully');
-                        resolve({ image: result.output[0] }); // Temporary: return image instead of video
+                        resolve({ video: result.output[0] }); // Return actual video
                     } catch (error) {
                         console.log('VIDEO Polling failed:', error.message);
                         reject(error);
