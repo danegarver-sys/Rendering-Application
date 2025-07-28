@@ -769,33 +769,25 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8,
-                width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                num_frames: 14,
+                fps: 6
             }
         });
         console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 24,
-                fps: 8,
-                width: 1024,
-                height: 576,
-                motion_bucket_id: 127,
-                cond_aug: 0.02
+                num_frames: 14,
+                fps: 6
             }
         });
         console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
