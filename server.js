@@ -1,4 +1,6 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
+console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
+console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -89,7 +91,13 @@ app.get('/test-image', async (req, res) => {
 // Debug route to test video endpoint
 app.get('/test-video', (req, res) => {
     console.log('Test video route accessed');
-    res.json({ message: 'Video endpoint is accessible!', timestamp: new Date().toISOString() });
+    res.json({ 
+        message: 'Video endpoint is accessible!', 
+        timestamp: new Date().toISOString(),
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoFrames: 24,
+        videoFps: 8
+    });
 });
 
 // Generate image from multiple inputs
