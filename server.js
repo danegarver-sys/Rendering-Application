@@ -24,6 +24,8 @@ app.use((req, res, next) => {
 // Serve static files (CSS, JS, images) but not HTML
 app.use('/style.css', express.static(__dirname + '/style.css'));
 app.use('/script.js', express.static(__dirname + '/script.js'));
+app.use('/main.js', express.static(__dirname + '/main.js'));
+app.use('/app.js', express.static(__dirname + '/app.js'));
 app.use('/favicon.ico', express.static(__dirname + '/favicon.ico'));
 
 // Configure multer for file uploads
@@ -55,6 +57,11 @@ const handleUpload = (req, res, next) => {
 app.get('/', (req, res) => {
     console.log('Root route accessed');
     res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/main.html', (req, res) => {
+    console.log('Main.html route accessed');
+    res.sendFile(__dirname + '/main.html');
 });
 
 // Test endpoint to verify server is working
