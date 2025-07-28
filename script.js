@@ -405,7 +405,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Video generation failed') + '</div>';
             }
         } catch (err) {
-            generatedFrame.innerHTML = '<div class="loading-message">Error: ' + err.message + '</div>';
+            console.error('Video generation error:', err);
+            generatedFrame.innerHTML = `
+                <div class="loading-message">
+                    <p>Error: ${err.message}</p>
+                    <p>Video generation failed. This could be due to:</p>
+                    <ul style="text-align: left; margin: 10px 0;">
+                        <li>Model availability issues</li>
+                        <li>Complex prompt that the video model couldn't handle</li>
+                        <li>API token or billing issues</li>
+                    </ul>
+                    <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #3a7afe; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
         } finally {
             // Re-enable video button
             videoBtn.disabled = false;

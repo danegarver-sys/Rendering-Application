@@ -268,12 +268,21 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             }
         }
 
+        console.log('Starting video generation with:', {
+            prompt,
+            negativePrompt,
+            imageCount: uploadedImages.length
+        });
+
         // Generate video
         const result = await generateVideo(prompt, uploadedImages, negativePrompt);
         res.json(result);
     } catch (error) {
         console.error('Video generation error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            error: error.message,
+            details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.'
+        });
     }
 });
 
@@ -698,7 +707,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
-    // Use a video generation model
+    // Use a more reliable video generation model
     let postData;
     
     if (images && images.length > 0) {
@@ -707,32 +716,36 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
+                num_frames: 16,
                 fps: 8,
                 width: 1024,
-                height: 576
+                height: 576,
+                motion_bucket_id: 127,
+                cond_aug: 0.02
             }
         });
-        console.log('VIDEO: Using image-to-video generation');
+        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 24,
+                num_frames: 16,
                 fps: 8,
                 width: 1024,
-                height: 576
+                height: 576,
+                motion_bucket_id: 127,
+                cond_aug: 0.02
             }
         });
-        console.log('VIDEO: Using text-to-video generation');
+        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
     }
 
     const options = {
