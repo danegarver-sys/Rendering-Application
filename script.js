@@ -1,7 +1,8 @@
 // Advanced Architectural Rendering Generator - Frontend
-// Version 2.2 - Video Generation Enabled - CACHE BUST
-console.log('=== SCRIPT LOADED: Version 2.2 - Video Generation Enabled ===');
-console.log('=== CACHE BUST: Unique identifier to force refresh ===');
+// Version 2.3 - Video Generation Enabled - CACHE BUST FORCE
+console.log('=== SCRIPT LOADED: Version 2.3 - Video Generation Enabled ===');
+console.log('=== CACHE BUST FORCE: Unique identifier 12345 to force refresh ===');
+console.log('=== TIMESTAMP: 20241201_1430_unique_12345 ===');
 
 // Backend URL configuration - GLOBAL SCOPE
 const BACKEND_URL = 'https://rendering-application.onrender.com';
