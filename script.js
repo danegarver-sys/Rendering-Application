@@ -1,14 +1,15 @@
 // Advanced Architectural Rendering Generator - Frontend
-// Version 2.0 - Video Generation Enabled
-console.log('=== SCRIPT LOADED: Version 2.0 - Video Generation Enabled ===');
+// Version 2.1 - Video Generation Enabled
+console.log('=== SCRIPT LOADED: Version 2.1 - Video Generation Enabled ===');
 
-// Backend URL configuration
+// Backend URL configuration - GLOBAL SCOPE
 const BACKEND_URL = 'https://rendering-application.onrender.com';
+console.log('Backend URL defined:', BACKEND_URL);
 
 // Test server connectivity
 async function testServerConnection() {
     try {
-        console.log('Testing server connection...');
+        console.log('Testing server connection to:', BACKEND_URL);
         const response = await fetch(`${BACKEND_URL}/test`);
         const data = await response.json();
         console.log('Server test response:', data);
@@ -20,7 +21,7 @@ async function testServerConnection() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Backend URL:', BACKEND_URL);
+    console.log('DOM loaded, Backend URL:', BACKEND_URL);
     
     // Test server connectivity on page load
     testServerConnection().then(isConnected => {
