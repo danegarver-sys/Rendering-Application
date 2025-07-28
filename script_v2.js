@@ -1,8 +1,9 @@
 // Advanced Architectural Rendering Generator - Frontend
-// Version 2.4 - Video Generation Enabled - CACHE BUST FINAL
-console.log('=== SCRIPT LOADED: Version 2.4 - Video Generation Enabled ===');
-console.log('=== CACHE BUST FINAL: Unique identifier 12345 to force refresh ===');
-console.log('=== TIMESTAMP: 20241201_1430_unique_12345_bust_final ===');
+// NEW FILE: script_v2.js - Video Generation Enabled
+console.log('=== NEW SCRIPT FILE LOADED: script_v2.js ===');
+console.log('=== VERSION: 1.0 - Video Generation Enabled ===');
+console.log('=== CACHE BUST: Completely new filename ===');
+console.log('=== TIMESTAMP: 20241201_1430_new_file ===');
 
 // Backend URL configuration - GLOBAL SCOPE
 const BACKEND_URL = 'https://rendering-application.onrender.com';
@@ -37,17 +38,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupImageUpload(inputId, previewId) {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
-        input.addEventListener('change', function() {
-            preview.innerHTML = '';
-            const file = input.files[0];
-            if (file && file.type.startsWith('image/')) {
+        
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    preview.innerHTML = '';
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.style.maxWidth = '100%';
+                    img.style.maxWidth = '200px';
                     img.style.maxHeight = '200px';
-                    img.style.objectFit = 'contain';
                     preview.appendChild(img);
                 };
                 reader.readAsDataURL(file);
@@ -55,19 +56,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Setup image uploads
     setupImageUpload('imageUpload1', 'imagePreview1');
     setupImageUpload('imageUpload2', 'imagePreview2');
     setupImageUpload('imageUpload3', 'imagePreview3');
 
-    const uploadForm = document.getElementById('uploadForm');
+    // Form submission
+    const form = document.getElementById('uploadForm');
     const promptBox = document.getElementById('prompt');
     const negativePromptBox = document.getElementById('negativePrompt');
 
-    uploadForm.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         // Prevent multiple submissions
-        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Generating...';
         
@@ -96,12 +99,11 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating rendering... This may take 1-2 minutes.';
+        loadingMsg.textContent = 'Generating image... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Call the backend
             const response = await fetch(`${BACKEND_URL}/generate`, {
                 method: 'POST',
                 body: formData
@@ -112,22 +114,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Image generation response:', data);
 
             if (data.image) {
-                // Clear the frame completely
                 generatedFrame.innerHTML = '';
-                console.log('Displaying generated image:', data.image);
-                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
-                genImg.alt = 'Generated Rendering';
+                genImg.alt = 'Generated Image';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
                 genImg.style.display = 'block';
                 genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
-                // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadBtn';
                 downloadBtn.textContent = 'Download Image';
@@ -135,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
                     link.href = data.image;
-                    link.download = 'generated_rendering.png';
+                    link.download = 'generated_image.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -192,12 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating face-focused image... This may take 1-2 minutes.';
+        loadingMsg.textContent = 'Generating face... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Call the face generation endpoint
             const response = await fetch(`${BACKEND_URL}/generate-face`, {
                 method: 'POST',
                 body: formData
@@ -208,25 +206,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Face generation response:', data);
 
             if (data.image) {
-                // Clear the frame completely
                 generatedFrame.innerHTML = '';
-                console.log('Displaying generated face image:', data.image);
-                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
-                genImg.alt = 'Generated Face Image';
+                genImg.alt = 'Generated Face';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
                 genImg.style.display = 'block';
                 genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
-                // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadBtn';
-                downloadBtn.textContent = 'Download Face Image';
+                downloadBtn.textContent = 'Download Face';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
@@ -288,12 +283,11 @@ document.addEventListener('DOMContentLoaded', function() {
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating enhanced face image... This may take 1-2 minutes.';
+        loadingMsg.textContent = 'Generating enhanced face... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Call the enhanced face generation endpoint
             const response = await fetch(`${BACKEND_URL}/generate-face-enhanced`, {
                 method: 'POST',
                 body: formData
@@ -304,30 +298,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Enhanced face generation response:', data);
 
             if (data.image) {
-                // Clear the frame completely
                 generatedFrame.innerHTML = '';
-                console.log('Displaying enhanced face image:', data.image);
-                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
-                genImg.alt = 'Enhanced Face Image';
+                genImg.alt = 'Generated Enhanced Face';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
                 genImg.style.display = 'block';
                 genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
-                // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadBtn';
-                downloadBtn.textContent = 'Download Enhanced Face Image';
+                downloadBtn.textContent = 'Download Enhanced Face';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
                     link.href = data.image;
-                    link.download = 'enhanced_face.png';
+                    link.download = 'generated_enhanced_face.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -466,16 +457,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('No video or image found in response');
                 generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Video generation failed') + '</div>';
             }
-        } catch (err) {
-            console.error('Video generation error:', err);
-            let errorMessage = err.message;
+        } catch (error) {
+            console.error('Video generation error:', error);
+            let errorMessage = error.message;
             let errorDetails = '';
             
-            // Try to parse error details if available
             try {
-                const errorResponse = await response?.json();
-                if (errorResponse && errorResponse.details) {
-                    errorDetails = errorResponse.details;
+                const errorResponse = await error.response?.text();
+                if (errorResponse) {
+                    errorDetails = errorResponse;
                 }
             } catch (parseError) {
                 console.log('Could not parse error response');
@@ -508,38 +498,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Fallback function to generate image instead of video
+    // Add fallback function for video generation
     window.generateImageInstead = async function() {
+        console.log('Generating image instead of video...');
+        
+        // Collect form data
+        const formData = new FormData();
+        formData.append('prompt', promptBox.value);
+        if (negativePromptBox.value.trim()) {
+            formData.append('negativePrompt', negativePromptBox.value);
+        }
+        
+        // Add images and their types
+        for (let i = 1; i <= 3; i++) {
+            const fileInput = document.getElementById('imageUpload' + i);
+            const typeSelect = document.getElementById('imageType' + i);
+            
+            if (fileInput.files[0]) {
+                formData.append('image' + i, fileInput.files[0]);
+                formData.append('imageType' + i, typeSelect.value);
+            }
+        }
+
+        // Show loading spinner and message
         const generatedFrame = document.getElementById('generatedImageFrame');
         generatedFrame.innerHTML = '';
         const spinner = document.createElement('div');
         spinner.className = 'spinner';
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'loading-message';
-        loadingMsg.textContent = 'Generating image instead... This may take 1-2 minutes.';
+        loadingMsg.textContent = 'Generating image... This may take 1-2 minutes.';
         generatedFrame.appendChild(spinner);
         generatedFrame.appendChild(loadingMsg);
 
         try {
-            // Collect form data
-            const formData = new FormData();
-            formData.append('prompt', promptBox.value);
-            if (negativePromptBox.value.trim()) {
-                formData.append('negativePrompt', negativePromptBox.value);
-            }
-            
-            // Add images and their types
-            for (let i = 1; i <= 3; i++) {
-                const fileInput = document.getElementById('imageUpload' + i);
-                const typeSelect = document.getElementById('imageType' + i);
-                
-                if (fileInput.files[0]) {
-                    formData.append('image' + i, fileInput.files[0]);
-                    formData.append('imageType' + i, typeSelect.value);
-                }
-            }
-
-            // Call the regular image generation endpoint
             const response = await fetch(`${BACKEND_URL}/generate`, {
                 method: 'POST',
                 body: formData
@@ -550,30 +542,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            console.log('Fallback image generation response:', data);
 
             if (data.image) {
-                // Clear the frame completely
                 generatedFrame.innerHTML = '';
-                console.log('Displaying fallback image:', data.image);
-                
                 const genImg = document.createElement('img');
                 genImg.src = data.image;
-                genImg.alt = 'Generated Image (Video Fallback)';
+                genImg.alt = 'Generated Image (Fallback)';
                 genImg.style.maxWidth = '100%';
                 genImg.style.height = 'auto';
                 genImg.style.display = 'block';
                 genImg.style.margin = '0 auto';
                 generatedFrame.appendChild(genImg);
 
-                // Add download button
                 const downloadBtn = document.createElement('button');
                 downloadBtn.id = 'downloadBtn';
-                downloadBtn.textContent = 'Download Image';
+                downloadBtn.textContent = 'Download Image (Fallback)';
                 downloadBtn.className = 'download-btn';
                 downloadBtn.onclick = function() {
                     const link = document.createElement('a');
                     link.href = data.image;
-                    link.download = 'generated_image.png';
+                    link.download = 'fallback_image.png';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -582,23 +571,24 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 generatedFrame.innerHTML = '<div class="loading-message">Error: ' + (data.error || 'Image generation failed') + '</div>';
             }
-        } catch (err) {
-            generatedFrame.innerHTML = '<div class="loading-message">Error: ' + err.message + '</div>';
+        } catch (error) {
+            console.error('Fallback image generation error:', error);
+            generatedFrame.innerHTML = '<div class="loading-message">Error: ' + error.message + '</div>';
         }
     };
 
-    // Add the face and video buttons to the button container
-    const buttonContainer = uploadForm.querySelector('.button-container');
-    console.log('Button container found:', buttonContainer);
-    
-    buttonContainer.appendChild(faceBtn);
-    console.log('Face button added');
-    
-    buttonContainer.appendChild(enhancedFaceBtn);
-    console.log('Enhanced face button added');
-    
-    buttonContainer.appendChild(videoBtn);
-    console.log('Video button added');
-    
-    console.log('All buttons added to container. Total buttons:', buttonContainer.children.length);
-});
+    // Add buttons to the button container
+    const buttonContainer = document.querySelector('.button-container');
+    if (buttonContainer) {
+        console.log('Button container found:', buttonContainer);
+        buttonContainer.appendChild(faceBtn);
+        console.log('Face button added');
+        buttonContainer.appendChild(enhancedFaceBtn);
+        console.log('Enhanced face button added');
+        buttonContainer.appendChild(videoBtn);
+        console.log('Video button added');
+        console.log('All buttons added to container. Total buttons:', buttonContainer.children.length);
+    } else {
+        console.error('Button container not found');
+    }
+}); 
