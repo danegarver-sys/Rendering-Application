@@ -5,8 +5,10 @@ console.log("=== FORCE RESTART: " + new Date().toISOString() + " ===");
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const https = require('https');
-const http = require('http');
+const path = require('path');
+const fs = require('fs-extra');
+const axios = require('axios');
+const ffmpeg = require('fluent-ffmpeg');
 require('dotenv').config();
 
 const app = express();
@@ -616,6 +618,56 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             timestamp: new Date().toISOString(),
             errorType: typeof error,
             errorConstructor: error.constructor.name
+        });
+    }
+});
+
+// Create MP4 video from frames
+app.post('/create-video', async (req, res) => {
+    console.log('=== VIDEO CREATION ENDPOINT ACCESSED ===');
+    
+    try {
+        const { frameUrls, fps = 8 } = req.body;
+        
+        if (!frameUrls || !Array.isArray(frameUrls) || frameUrls.length === 0) {
+            return res.status(400).json({
+                error: 'Frame URLs are required',
+                received: frameUrls
+            });
+        }
+        
+        console.log('Creating video from frames:', frameUrls.length);
+        console.log('FPS:', fps);
+        
+        // Create output directory
+        const outputDir = path.join(__dirname, 'videos');
+        await fs.ensureDir(outputDir);
+        
+        // Generate unique filename
+        const timestamp = Date.now();
+        const videoPath = path.join(outputDir, `video_${timestamp}.mp4`);
+        
+        // Create video
+        const createdVideoPath = await createVideoFromFrames(frameUrls, videoPath, fps);
+        
+        // Return video file for download
+        res.download(createdVideoPath, `generated_video_${timestamp}.mp4`, (err) => {
+            if (err) {
+                console.error('Error sending video file:', err);
+                res.status(500).json({ error: 'Failed to send video file' });
+            } else {
+                // Clean up video file after sending
+                fs.remove(createdVideoPath).catch(cleanupErr => 
+                    console.error('Error cleaning up video file:', cleanupErr)
+                );
+            }
+        });
+        
+    } catch (error) {
+        console.error('Video creation error:', error);
+        res.status(500).json({
+            error: error.message,
+            details: 'Video creation failed'
         });
     }
 });
@@ -1314,6 +1366,87 @@ async function pollForCompletion(predictionId) {
 
         checkStatus();
     });
+}
+
+// Video processing functions
+async function downloadImage(url, filepath) {
+    try {
+        const response = await axios({
+            method: 'GET',
+            url: url,
+            responseType: 'stream'
+        });
+        
+        const writer = fs.createWriteStream(filepath);
+        response.data.pipe(writer);
+        
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+    } catch (error) {
+        console.error('Error downloading image:', error);
+        throw error;
+    }
+}
+
+async function createVideoFromFrames(frameUrls, outputPath, fps = 8) {
+    try {
+        console.log('Creating video from frames...');
+        console.log('Frame URLs:', frameUrls.length);
+        console.log('Output path:', outputPath);
+        console.log('FPS:', fps);
+        
+        // Create temp directory for frames
+        const tempDir = path.join(__dirname, 'temp_frames');
+        await fs.ensureDir(tempDir);
+        
+        // Download all frames
+        const framePromises = frameUrls.map(async (url, index) => {
+            const framePath = path.join(tempDir, `frame_${index.toString().padStart(3, '0')}.png`);
+            await downloadImage(url, framePath);
+            return framePath;
+        });
+        
+        const framePaths = await Promise.all(framePromises);
+        console.log('All frames downloaded:', framePaths.length);
+        
+        // Create video using ffmpeg
+        return new Promise((resolve, reject) => {
+            ffmpeg()
+                .input(path.join(tempDir, 'frame_%03d.png'))
+                .inputFPS(fps)
+                .outputOptions([
+                    '-c:v libx264',
+                    '-pix_fmt yuv420p',
+                    '-crf 23',
+                    '-preset medium'
+                ])
+                .output(outputPath)
+                .on('start', (commandLine) => {
+                    console.log('FFmpeg command:', commandLine);
+                })
+                .on('progress', (progress) => {
+                    console.log('Processing: ' + progress.percent + '% done');
+                })
+                .on('end', () => {
+                    console.log('Video created successfully:', outputPath);
+                    // Clean up temp frames
+                    fs.remove(tempDir).catch(err => console.error('Error cleaning temp dir:', err));
+                    resolve(outputPath);
+                })
+                .on('error', (err) => {
+                    console.error('FFmpeg error:', err);
+                    // Clean up temp frames
+                    fs.remove(tempDir).catch(cleanupErr => console.error('Error cleaning temp dir:', cleanupErr));
+                    reject(err);
+                })
+                .run();
+        });
+    } catch (error) {
+        console.error('Error creating video:', error);
+        throw error;
+    }
 }
 
 app.listen(PORT, () => {

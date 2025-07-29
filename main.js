@@ -503,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const downloadFirstBtn = document.createElement('button');
                 downloadFirstBtn.textContent = 'Download First Frame';
                 downloadFirstBtn.className = 'download-btn';
+                downloadFirstBtn.style.marginRight = '10px';
                 downloadFirstBtn.onclick = function() {
                     const link = document.createElement('a');
                     link.href = data.videoSequence[0].url;
@@ -512,6 +513,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.body.removeChild(link);
                 };
                 downloadContainer.appendChild(downloadFirstBtn);
+                
+                // Add Create MP4 Video button
+                const createVideoBtn = document.createElement('button');
+                createVideoBtn.textContent = 'Create MP4 Video';
+                createVideoBtn.className = 'download-btn';
+                createVideoBtn.style.backgroundColor = '#28a745';
+                createVideoBtn.style.color = 'white';
+                createVideoBtn.onclick = async function() {
+                    try {
+                        createVideoBtn.textContent = 'Creating Video...';
+                        createVideoBtn.disabled = true;
+                        
+                        // Extract frame URLs
+                        const frameUrls = data.videoSequence.map(frame => frame.url);
+                        
+                        console.log('Creating MP4 video from frames:', frameUrls.length);
+                        
+                        // Call the video creation endpoint
+                        const response = await fetch(`${BACKEND_URL}/create-video`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                frameUrls: frameUrls,
+                                fps: 8
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            // Get the video blob
+                            const videoBlob = await response.blob();
+                            
+                            // Create download link
+                            const url = window.URL.createObjectURL(videoBlob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `generated_video_${Date.now()}.mp4`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
+                            
+                            console.log('Video created and downloaded successfully!');
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Video creation failed:', errorData);
+                            alert('Video creation failed: ' + (errorData.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error creating video:', error);
+                        alert('Error creating video: ' + error.message);
+                    } finally {
+                        createVideoBtn.textContent = 'Create MP4 Video';
+                        createVideoBtn.disabled = false;
+                    }
+                };
+                downloadContainer.appendChild(createVideoBtn);
                 
                 sequenceContainer.appendChild(downloadContainer);
                 generatedFrame.appendChild(sequenceContainer);
