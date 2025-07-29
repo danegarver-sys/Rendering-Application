@@ -282,6 +282,21 @@ app.get('/test-simple-video', async (req, res) => {
     }
 });
 
+// Simple test endpoint for video generation
+app.post('/test-video-simple', async (req, res) => {
+    console.log('=== SIMPLE VIDEO TEST ENDPOINT ===');
+    try {
+        res.json({
+            success: true,
+            message: 'Simple video test endpoint working',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Simple test error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Generate image from multiple inputs
 app.post('/generate', handleUpload, async (req, res) => {
     console.log('=== IMAGE ENDPOINT ACCESSED ===');
