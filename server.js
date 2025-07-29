@@ -139,22 +139,39 @@ app.get('/test-video', (req, res) => {
 
 // Generate image from multiple inputs
 app.post('/generate', handleUpload, async (req, res) => {
-    console.log('Generate endpoint accessed');
-    console.log('Request headers:', req.headers);
-    console.log('Request body keys:', Object.keys(req.body));
-    console.log('Files received:', req.files ? Object.keys(req.files) : 'No files');
+    console.log('=== IMAGE ENDPOINT ACCESSED ===');
+    console.log('Image request method:', req.method);
+    console.log('Image request URL:', req.url);
+    console.log('Image request headers:', req.headers);
+    console.log('Image request body keys:', Object.keys(req.body));
+    console.log('Image files received:', req.files ? Object.keys(req.files) : 'No files');
+    console.log('Image request body content:', req.body);
+    console.log('=== SERVER TIMESTAMP:', new Date().toISOString(), '===');
     
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
         
-        console.log('Received request:', { prompt, imageType1, imageType2, imageType3 });
-        console.log('Files received:', Object.keys(files || {}));
+        console.log('Image generation request:', { prompt, imageType1, imageType2, imageType3 });
+        console.log('Prompt validation:', {
+            hasPrompt: !!prompt,
+            promptLength: prompt ? prompt.length : 0,
+            promptTrimmed: prompt ? prompt.trim() : '',
+            isEmpty: !prompt || prompt.trim() === ''
+        });
 
-        // Validate inputs
         if (!prompt || prompt.trim() === '') {
-            return res.status(400).json({ error: 'Prompt is required' });
+            console.log('=== IMAGE PROMPT VALIDATION FAILED ===');
+            console.log('Prompt is empty or missing');
+            return res.status(400).json({ 
+                error: 'Prompt is required',
+                receivedPrompt: prompt,
+                promptType: typeof prompt
+            });
         }
+
+        console.log('=== IMAGE PROMPT VALIDATION PASSED ===');
+        console.log('Prompt is valid:', prompt);
 
         // Get negative prompt if provided
         const negativePrompt = req.body.negativePrompt || "blurry, low quality, distorted, unrealistic";
@@ -170,7 +187,6 @@ app.post('/generate', handleUpload, async (req, res) => {
                     const file = files[fileKey][0];
                     const imageType = req.body[typeKey] || 'Photo';
                     
-                    // Convert buffer to base64
                     const base64Image = file.buffer.toString('base64');
                     const dataUrl = `data:${file.mimetype};base64,${base64Image}`;
                     
@@ -183,25 +199,30 @@ app.post('/generate', handleUpload, async (req, res) => {
             }
         }
 
-        console.log(`Processing ${uploadedImages.length} images with prompt: ${prompt}`);
+        console.log('Starting image generation with:', {
+            prompt,
+            negativePrompt,
+            imageCount: uploadedImages.length
+        });
 
-        // Choose generation method based on inputs
+        // Generate image
         let result;
-        console.log('About to choose generation method. Uploaded images:', uploadedImages.length);
         if (uploadedImages.length > 0) {
-            // Image-to-image generation
-            console.log('Calling image-to-image generation with prompt:', prompt);
             result = await generateImageToImage(prompt, uploadedImages, negativePrompt);
         } else {
-            // Text-to-image generation
-            console.log('Calling text-to-image generation with prompt:', prompt);
             result = await generateTextToImage(prompt, negativePrompt);
         }
-
+        
+        console.log('Image generation result:', result);
         res.json(result);
     } catch (error) {
-        console.error('Generation error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Image generation error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            error: error.message,
+            details: 'Image generation failed. Please try again with a different prompt or check your Replicate API token.',
+            stack: error.stack
+        });
     }
 });
 
@@ -311,16 +332,32 @@ app.post('/generate-video', handleUpload, async (req, res) => {
     console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
     console.log('Video request body content:', req.body);
     console.log('=== SERVER TIMESTAMP:', new Date().toISOString(), '===');
+    console.log('=== REQUEST VALIDATION ===');
     
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
         const files = req.files;
         
         console.log('Video generation request:', { prompt, imageType1, imageType2, imageType3 });
+        console.log('Prompt validation:', {
+            hasPrompt: !!prompt,
+            promptLength: prompt ? prompt.length : 0,
+            promptTrimmed: prompt ? prompt.trim() : '',
+            isEmpty: !prompt || prompt.trim() === ''
+        });
 
         if (!prompt || prompt.trim() === '') {
-            return res.status(400).json({ error: 'Prompt is required' });
+            console.log('=== PROMPT VALIDATION FAILED ===');
+            console.log('Prompt is empty or missing');
+            return res.status(400).json({ 
+                error: 'Prompt is required',
+                receivedPrompt: prompt,
+                promptType: typeof prompt
+            });
         }
+
+        console.log('=== PROMPT VALIDATION PASSED ===');
+        console.log('Prompt is valid:', prompt);
 
         // Get negative prompt if provided
         const negativePrompt = req.body.negativePrompt || "blurry, low quality, distorted, unrealistic, fast motion, jerky";
