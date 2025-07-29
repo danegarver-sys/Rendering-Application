@@ -527,18 +527,68 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             }
         }
 
-        console.log('Starting video generation with:', {
+        console.log('Starting video sequence generation with:', {
             prompt,
             negativePrompt,
             imageCount: uploadedImages.length
         });
 
-        // Generate video
-        const result = await generateVideo(prompt, uploadedImages, negativePrompt);
-        console.log('Video generation result:', result);
-        res.json(result);
+        // Generate a sequence of images with slight variations to simulate video
+        console.log('=== GENERATING VIDEO SEQUENCE ===');
+        
+        const frameCount = 8; // Generate 8 frames for a short video
+        const imagePromises = [];
+        
+        for (let i = 0; i < frameCount; i++) {
+            // Create slight variations in the prompt for each frame
+            const frameVariations = [
+                `${prompt}, frame ${i + 1}, cinematic, high quality`,
+                `${prompt}, frame ${i + 1}, slight camera movement, cinematic`,
+                `${prompt}, frame ${i + 1}, dynamic composition, cinematic`,
+                `${prompt}, frame ${i + 1}, professional photography, cinematic`,
+                `${prompt}, frame ${i + 1}, movie still, cinematic`,
+                `${prompt}, frame ${i + 1}, dramatic lighting, cinematic`,
+                `${prompt}, frame ${i + 1}, atmospheric, cinematic`,
+                `${prompt}, frame ${i + 1}, cinematic composition, high quality`
+            ];
+            
+            const framePrompt = frameVariations[i] || `${prompt}, frame ${i + 1}, cinematic`;
+            
+            // Generate each frame
+            let framePromise;
+            if (uploadedImages.length > 0) {
+                framePromise = generateImageToImage(framePrompt, uploadedImages, negativePrompt);
+            } else {
+                framePromise = generateTextToImage(framePrompt, negativePrompt);
+            }
+            
+            imagePromises.push(framePromise);
+        }
+        
+        // Wait for all frames to be generated
+        console.log('Generating all frames...');
+        const frameResults = await Promise.all(imagePromises);
+        console.log('All frames generated:', frameResults.length);
+        
+        // Extract image URLs from results
+        const videoFrames = frameResults.map((result, index) => ({
+            frame: index + 1,
+            url: result.image,
+            prompt: frameVariations[index] || `${prompt}, frame ${index + 1}, cinematic`
+        }));
+        
+        console.log('Video sequence created with frames:', videoFrames.length);
+        
+        // Return the video sequence (first frame as main image, all frames in sequence)
+        res.json({ 
+            image: videoFrames[0].url, // Main image for display
+            videoSequence: videoFrames, // All frames for video creation
+            message: `Generated ${frameCount} cinematic frames that can be combined into a video sequence`,
+            frameCount: frameCount
+        });
+        
     } catch (error) {
-        console.error('Video generation error:', error);
+        console.error('Video sequence generation error:', error);
         console.error('Error stack:', error.stack);
         console.error('Error details:', {
             message: error.message,
@@ -549,42 +599,14 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         console.error('Error type:', typeof error);
         console.error('Error constructor:', error.constructor.name);
         
-        // Try to get more details about the error
-        if (error.message && error.message.includes('Replicate API error')) {
-            console.error('Replicate API specific error detected');
-        }
-        
-        // Try alternative video generation approach
-        console.log('Attempting alternative video generation approach...');
-        try {
-            const alternativeResult = await generateVideoAlternative(prompt, uploadedImages, negativePrompt);
-            console.log('Alternative video generation successful:', alternativeResult);
-            res.json(alternativeResult);
-        } catch (alternativeError) {
-            console.error('Alternative video generation also failed:', alternativeError);
-            
-            // Fallback: try to generate an image instead of video
-            console.log('Attempting fallback to image generation...');
-            try {
-                const fallbackResult = await generateTextToImage(prompt + " cinematic, high quality", negativePrompt);
-                console.log('Fallback image generation successful:', fallbackResult);
-                res.json({ 
-                    image: fallbackResult.image, 
-                    message: 'Video generation failed, but here is a cinematic image instead',
-                    originalError: error.message
-                });
-            } catch (fallbackError) {
-                console.error('Fallback image generation also failed:', fallbackError);
-                res.status(500).json({
-                    error: error.message,
-                    details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
-                    stack: error.stack,
-                    timestamp: new Date().toISOString(),
-                    errorType: typeof error,
-                    errorConstructor: error.constructor.name
-                });
-            }
-        }
+        res.status(500).json({
+            error: error.message,
+            details: 'Video sequence generation failed. Please try again with a different prompt or check your Replicate API token.',
+            stack: error.stack,
+            timestamp: new Date().toISOString(),
+            errorType: typeof error,
+            errorConstructor: error.constructor.name
+        });
     }
 });
 

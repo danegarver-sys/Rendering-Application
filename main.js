@@ -422,6 +422,100 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.body.removeChild(link);
                 };
                 generatedFrame.appendChild(downloadBtn);
+            } else if (data.videoSequence) {
+                // Display video sequence (multiple frames)
+                console.log('Displaying video sequence:', data.videoSequence);
+                generatedFrame.innerHTML = '';
+                
+                // Create container for video sequence
+                const sequenceContainer = document.createElement('div');
+                sequenceContainer.style.textAlign = 'center';
+                sequenceContainer.style.margin = '20px 0';
+                
+                // Add title
+                const title = document.createElement('h3');
+                title.textContent = `Video Sequence (${data.frameCount} frames)`;
+                title.style.marginBottom = '15px';
+                sequenceContainer.appendChild(title);
+                
+                // Add message
+                const message = document.createElement('p');
+                message.textContent = data.message || 'Generated video sequence frames:';
+                message.style.marginBottom = '15px';
+                message.style.color = '#666';
+                sequenceContainer.appendChild(message);
+                
+                // Create frame grid
+                const frameGrid = document.createElement('div');
+                frameGrid.style.display = 'grid';
+                frameGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+                frameGrid.style.gap = '10px';
+                frameGrid.style.marginBottom = '20px';
+                
+                // Add each frame
+                data.videoSequence.forEach((frame, index) => {
+                    const frameContainer = document.createElement('div');
+                    frameContainer.style.border = '1px solid #ddd';
+                    frameContainer.style.borderRadius = '8px';
+                    frameContainer.style.padding = '10px';
+                    frameContainer.style.textAlign = 'center';
+                    
+                    const frameImg = document.createElement('img');
+                    frameImg.src = frame.url;
+                    frameImg.alt = `Frame ${frame.frame}`;
+                    frameImg.style.maxWidth = '100%';
+                    frameImg.style.height = 'auto';
+                    frameImg.style.borderRadius = '4px';
+                    
+                    const frameLabel = document.createElement('p');
+                    frameLabel.textContent = `Frame ${frame.frame}`;
+                    frameLabel.style.margin = '5px 0 0 0';
+                    frameLabel.style.fontSize = '12px';
+                    frameLabel.style.color = '#666';
+                    
+                    frameContainer.appendChild(frameImg);
+                    frameContainer.appendChild(frameLabel);
+                    frameGrid.appendChild(frameContainer);
+                });
+                
+                sequenceContainer.appendChild(frameGrid);
+                
+                // Add download buttons for each frame
+                const downloadContainer = document.createElement('div');
+                downloadContainer.style.marginTop = '15px';
+                
+                const downloadAllBtn = document.createElement('button');
+                downloadAllBtn.textContent = 'Download All Frames';
+                downloadAllBtn.className = 'download-btn';
+                downloadAllBtn.style.marginRight = '10px';
+                downloadAllBtn.onclick = function() {
+                    data.videoSequence.forEach((frame, index) => {
+                        const link = document.createElement('a');
+                        link.href = frame.url;
+                        link.download = `frame_${frame.frame}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                };
+                downloadContainer.appendChild(downloadAllBtn);
+                
+                const downloadFirstBtn = document.createElement('button');
+                downloadFirstBtn.textContent = 'Download First Frame';
+                downloadFirstBtn.className = 'download-btn';
+                downloadFirstBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.href = data.videoSequence[0].url;
+                    link.download = 'first_frame.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                downloadContainer.appendChild(downloadFirstBtn);
+                
+                sequenceContainer.appendChild(downloadContainer);
+                generatedFrame.appendChild(sequenceContainer);
+                
             } else if (data.image) {
                 // Fallback: if we got an image instead of video, display it
                 console.log('Received image instead of video, displaying as fallback');
