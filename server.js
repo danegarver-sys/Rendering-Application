@@ -1,6 +1,6 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
 console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
-console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
+console.log("=== VIDEO FRAMES: 48, FPS: 8 ===");
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -95,7 +95,7 @@ app.get('/test-video', (req, res) => {
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
         videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
-        videoFrames: 24,
+        videoFrames: 48,
         videoFps: 8
     });
 });
@@ -782,7 +782,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
+                num_frames: 48,
                 fps: 8
             }
         });
@@ -794,7 +794,7 @@ async function generateVideo(prompt, images, negativePrompt) {
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 24,
+                num_frames: 48,
                 fps: 8
             }
         });
