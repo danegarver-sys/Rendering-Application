@@ -575,8 +575,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 downloadContainer.appendChild(createVideoBtn);
                 
+                // Add test button for debugging
+                const testBtn = document.createElement('button');
+                testBtn.textContent = 'Test Video Endpoint';
+                testBtn.className = 'download-btn';
+                testBtn.style.backgroundColor = '#ffc107';
+                testBtn.style.color = 'black';
+                testBtn.style.marginRight = '10px';
+                testBtn.onclick = async function() {
+                    try {
+                        testBtn.textContent = 'Testing...';
+                        testBtn.disabled = true;
+                        
+                        console.log('Testing video endpoint...');
+                        const response = await fetch(`${BACKEND_URL}/test-video-simple`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ test: true })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('Test response:', data);
+                            alert('Test successful: ' + data.message);
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Test failed:', errorData);
+                            alert('Test failed: ' + (errorData.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Test error:', error);
+                        alert('Test error: ' + error.message);
+                    } finally {
+                        testBtn.textContent = 'Test Video Endpoint';
+                        testBtn.disabled = false;
+                    }
+                };
+                downloadContainer.appendChild(testBtn);
+                
                 sequenceContainer.appendChild(downloadContainer);
-                generatedFrame.appendChild(sequenceContainer);
                 
             } else if (data.image && data.frameCount && data.frameCount > 1) {
                 // Fallback: if we have multiple frames but no videoSequence property
@@ -768,4 +807,49 @@ document.addEventListener('DOMContentLoaded', function() {
             generatedFrame.innerHTML = '<div class="loading-message">Error: ' + error.message + '</div>';
         }
     };
+
+    // Add test button for debugging video endpoint
+    const testVideoBtn = document.createElement('button');
+    testVideoBtn.textContent = 'Test Video Endpoint';
+    testVideoBtn.className = 'download-btn';
+    testVideoBtn.style.backgroundColor = '#ffc107';
+    testVideoBtn.style.color = 'black';
+    testVideoBtn.style.marginTop = '10px';
+    testVideoBtn.onclick = async function() {
+        try {
+            testVideoBtn.textContent = 'Testing...';
+            testVideoBtn.disabled = true;
+            
+            console.log('Testing video endpoint...');
+            const response = await fetch(`${BACKEND_URL}/test-video-simple`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ test: true })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Test response:', data);
+                alert('Test successful: ' + data.message);
+            } else {
+                const errorData = await response.json();
+                console.error('Test failed:', errorData);
+                alert('Test failed: ' + (errorData.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Test error:', error);
+            alert('Test error: ' + error.message);
+        } finally {
+            testVideoBtn.textContent = 'Test Video Endpoint';
+            testVideoBtn.disabled = false;
+        }
+    };
+    
+    // Add test button to the page
+    const testButtonContainer = document.querySelector('.button-container');
+    if (testButtonContainer) {
+        testButtonContainer.appendChild(testVideoBtn);
+    }
 }); 
