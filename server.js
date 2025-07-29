@@ -1,5 +1,5 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
-console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
+console.log("=== VIDEO MODEL: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438 ===");
 console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
 console.log("=== FORCE RESTART: " + new Date().toISOString() + " ===");
 const express = require('express');
@@ -75,7 +75,7 @@ app.get('/test-server', (req, res) => {
         status: 'ok', 
         message: 'Server is working',
         timestamp: new Date().toISOString(),
-        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
         videoFrames: 24,
         videoFps: 8
     });
@@ -131,7 +131,7 @@ app.get('/test-video', (req, res) => {
     res.json({ 
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
-        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
         videoFrames: 24,
         videoFps: 8
     });
@@ -861,6 +861,7 @@ async function generateVideo(prompt, images, negativePrompt) {
     console.log('VIDEO: Prompt:', prompt);
     console.log('VIDEO: Negative prompt:', negativePrompt);
     console.log('VIDEO: Images count:', images ? images.length : 0);
+    console.log('VIDEO: API Token configured:', !!REPLICATE_API_TOKEN);
     
     // Try a different video model that might be more reliable
     let postData;
@@ -871,7 +872,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
@@ -880,11 +881,11 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 8
             }
         });
-        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion model');
+        console.log('VIDEO: Using image-to-video generation with alternative stable-video-diffusion model');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
@@ -892,7 +893,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 8
             }
         });
-        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion model');
+        console.log('VIDEO: Using text-to-video generation with alternative stable-video-diffusion model');
     }
 
     const options = {
@@ -910,6 +911,13 @@ async function generateVideo(prompt, images, negativePrompt) {
     return new Promise((resolve, reject) => {
         console.log('VIDEO: Sending request to Replicate API');
         console.log('VIDEO: Request data:', postData.substring(0, 500) + '...');
+        console.log('VIDEO: Request options:', {
+            hostname: options.hostname,
+            port: options.port,
+            path: options.path,
+            method: options.method,
+            headers: options.headers
+        });
         
         const req = https.request(options, (res) => {
             let data = '';
@@ -1006,6 +1014,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         });
 
         req.on('error', (error) => {
+            console.log('VIDEO Request error:', error);
             reject(error);
         });
 
