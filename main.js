@@ -539,6 +539,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 sequenceContainer.appendChild(frameGrid);
                 console.log('Frame grid added to sequence container');
                 
+                // Debug: Check if frames are actually in the DOM
+                console.log('Final DOM structure:');
+                console.log('Generated frame children:', generatedFrame.children.length);
+                console.log('Sequence container children:', sequenceContainer.children.length);
+                console.log('Frame grid children:', frameGrid.children.length);
+                
+                // Force visibility with inline styles
+                frameGrid.style.display = 'grid';
+                frameGrid.style.visibility = 'visible';
+                frameGrid.style.opacity = '1';
+                frameGrid.style.width = '100%';
+                frameGrid.style.height = 'auto';
+                frameGrid.style.minHeight = '300px';
+                
+                // Check each frame container
+                frameGrid.querySelectorAll('div').forEach((container, index) => {
+                    console.log(`Frame container ${index + 1}:`, container);
+                    console.log(`Container children:`, container.children.length);
+                    console.log(`Container style:`, container.style.cssText);
+                    
+                    // Force container visibility
+                    container.style.display = 'block';
+                    container.style.visibility = 'visible';
+                    container.style.opacity = '1';
+                    container.style.width = '100%';
+                    container.style.minHeight = '200px';
+                    
+                    // Check image in container
+                    const img = container.querySelector('img');
+                    if (img) {
+                        console.log(`Frame ${index + 1} image:`, img);
+                        console.log(`Image src:`, img.src);
+                        console.log(`Image style:`, img.style.cssText);
+                        console.log(`Image natural dimensions:`, img.naturalWidth, 'x', img.naturalHeight);
+                        
+                        // Force image visibility
+                        img.style.display = 'block';
+                        img.style.visibility = 'visible';
+                        img.style.opacity = '1';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                    }
+                });
+                
                 // Add download buttons for each frame
                 const downloadContainer = document.createElement('div');
                 downloadContainer.style.marginTop = '15px';
