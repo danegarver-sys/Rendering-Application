@@ -6,9 +6,9 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs-extra');
-const axios = require('axios');
-const ffmpeg = require('fluent-ffmpeg');
+// const fs = require('fs-extra');
+// const axios = require('axios');
+// const ffmpeg = require('fluent-ffmpeg');
 require('dotenv').config();
 
 const app = express();
@@ -622,7 +622,8 @@ app.post('/generate-video', handleUpload, async (req, res) => {
     }
 });
 
-// Create MP4 video from frames
+// Create MP4 video from frames (temporarily disabled until dependencies are installed)
+/*
 app.post('/create-video', async (req, res) => {
     console.log('=== VIDEO CREATION ENDPOINT ACCESSED ===');
     
@@ -671,6 +672,7 @@ app.post('/create-video', async (req, res) => {
         });
     }
 });
+*/
 
 // Text-to-image generation using Replicate
 async function generateTextToImage(prompt, negativePrompt) {
@@ -1368,7 +1370,8 @@ async function pollForCompletion(predictionId) {
     });
 }
 
-// Video processing functions
+// Video processing functions (temporarily disabled until dependencies are installed)
+/*
 async function downloadImage(url, filepath) {
     try {
         const response = await axios({
@@ -1448,6 +1451,7 @@ async function createVideoFromFrames(frameUrls, outputPath, fps = 8) {
         throw error;
     }
 }
+*/
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
