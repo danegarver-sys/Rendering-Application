@@ -431,7 +431,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Video sequence length:', data.videoSequence.length);
                 console.log('First frame data:', data.videoSequence[0]);
                 console.log('All frame URLs:', data.videoSequence.map(f => f.url));
+                
+                // Debug the generatedFrame element
+                console.log('Generated frame element:', generatedFrame);
+                console.log('Generated frame innerHTML before:', generatedFrame.innerHTML);
+                console.log('Generated frame children count before:', generatedFrame.children.length);
+                
                 generatedFrame.innerHTML = '';
+                
+                console.log('Generated frame innerHTML after clear:', generatedFrame.innerHTML);
                 
                 // Add a simple test message first
                 const testMsg = document.createElement('div');
@@ -441,9 +449,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 testMsg.style.margin = '10px';
                 testMsg.style.border = '2px solid red';
                 testMsg.style.fontWeight = 'bold';
+                testMsg.style.fontSize = '16px';
+                testMsg.style.zIndex = '9999';
+                testMsg.style.position = 'relative';
                 generatedFrame.appendChild(testMsg);
                 
                 console.log('Test message added to generatedFrame');
+                console.log('Generated frame children count after test:', generatedFrame.children.length);
                 
                 // Create container for video sequence
                 const sequenceContainer = document.createElement('div');
