@@ -27,38 +27,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, Backend URL:', BACKEND_URL);
     
     // IMMEDIATE BUTTON CREATION - Add this first
-    console.log('=== CREATING BUTTONS IMMEDIATELY ===');
+    console.log('=== BUTTONS ALREADY IN HTML - NO DYNAMIC CREATION NEEDED ===');
     
-    // Create buttons immediately
-    const faceBtn = document.createElement('button');
-    faceBtn.textContent = 'Generate Face';
-    faceBtn.className = 'face-btn';
-    faceBtn.style.marginTop = '10px';
-    faceBtn.style.marginRight = '10px';
-    
-    const enhancedFaceBtn = document.createElement('button');
-    enhancedFaceBtn.textContent = 'Generate Enhanced Face';
-    enhancedFaceBtn.className = 'enhanced-face-btn';
-    enhancedFaceBtn.style.marginTop = '10px';
-    enhancedFaceBtn.style.marginRight = '10px';
-    
-    const videoBtn = document.createElement('button');
-    videoBtn.textContent = 'Generate Video';
-    videoBtn.className = 'video-btn';
-    videoBtn.style.marginTop = '10px';
-    videoBtn.style.marginRight = '10px';
-    
-    // Add buttons to container immediately
+    // Buttons are now in HTML, just need to attach event listeners
     const buttonContainer = document.querySelector('.button-container');
     if (buttonContainer) {
         console.log('Button container found:', buttonContainer);
-        buttonContainer.appendChild(faceBtn);
-        console.log('Face button added');
-        buttonContainer.appendChild(enhancedFaceBtn);
-        console.log('Enhanced face button added');
-        buttonContainer.appendChild(videoBtn);
-        console.log('Video button added');
-        console.log('All buttons added to container. Total buttons:', buttonContainer.children.length);
+        console.log('Total buttons in container:', buttonContainer.children.length);
     } else {
         console.error('Button container not found');
     }
@@ -190,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add face generation functionality
+    const faceBtn = document.querySelector('.face-btn');
     faceBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
@@ -276,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add enhanced face generation functionality
+    const enhancedFaceBtn = document.querySelector('.enhanced-face-btn');
     enhancedFaceBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
@@ -362,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add video generation functionality
+    const videoBtn = document.querySelector('.video-btn');
     videoBtn.addEventListener('click', async function(e) {
         e.preventDefault();
         
