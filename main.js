@@ -391,8 +391,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Video generation response data:', data);
             console.log('Response keys:', Object.keys(data));
             console.log('Has video property:', 'video' in data);
+            console.log('Has videoSequence property:', 'videoSequence' in data);
             console.log('Has image property:', 'image' in data);
-
+            console.log('Video sequence data:', data.videoSequence);
+            console.log('Frame count:', data.frameCount);
+            
             if (data.video) {
                 // Clear the frame completely
                 generatedFrame.innerHTML = '';
@@ -575,9 +578,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 sequenceContainer.appendChild(downloadContainer);
                 generatedFrame.appendChild(sequenceContainer);
                 
+            } else if (data.image && data.frameCount && data.frameCount > 1) {
+                // Fallback: if we have multiple frames but no videoSequence property
+                console.log('Fallback: Multiple frames detected, creating video sequence display');
+                generatedFrame.innerHTML = '';
+                
+                // Create a simple video sequence display
+                const sequenceContainer = document.createElement('div');
+                sequenceContainer.style.textAlign = 'center';
+                sequenceContainer.style.margin = '20px 0';
+                
+                const title = document.createElement('h3');
+                title.textContent = `Generated Frames (${data.frameCount} frames)`;
+                title.style.marginBottom = '15px';
+                sequenceContainer.appendChild(title);
+                
+                // Show the main image
+                const mainImg = document.createElement('img');
+                mainImg.src = data.image;
+                mainImg.alt = 'Generated Image';
+                mainImg.style.maxWidth = '100%';
+                mainImg.style.height = 'auto';
+                mainImg.style.marginBottom = '15px';
+                sequenceContainer.appendChild(mainImg);
+                
+                // Add download button
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download Image';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.href = data.image;
+                    link.download = 'generated_image.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                sequenceContainer.appendChild(downloadBtn);
+                
+                generatedFrame.appendChild(sequenceContainer);
             } else if (data.image) {
-                // Fallback: if we got an image instead of video, display it
-                console.log('Received image instead of video, displaying as fallback');
+                // Fallback: if we got just a single image
+                console.log('Received single image, displaying as fallback');
                 console.log('Image URL:', data.image);
                 generatedFrame.innerHTML = '';
                 
