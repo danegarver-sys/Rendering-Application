@@ -546,20 +546,90 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         
                         if (response.ok) {
-                            // Get the video blob
-                            const videoBlob = await response.blob();
+                            // Get the response data
+                            const videoData = await response.json();
                             
-                            // Create download link
-                            const url = window.URL.createObjectURL(videoBlob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = `generated_video_${Date.now()}.mp4`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            window.URL.revokeObjectURL(url);
+                            console.log('Video creation response:', videoData);
                             
-                            console.log('Video created and downloaded successfully!');
+                            if (videoData.success) {
+                                // Show instructions for manual video creation
+                                const instructionsContainer = document.createElement('div');
+                                instructionsContainer.style.marginTop = '20px';
+                                instructionsContainer.style.padding = '15px';
+                                instructionsContainer.style.backgroundColor = '#f8f9fa';
+                                instructionsContainer.style.borderRadius = '8px';
+                                instructionsContainer.style.border = '1px solid #dee2e6';
+                                
+                                const instructionsTitle = document.createElement('h4');
+                                instructionsTitle.textContent = 'Video Creation Instructions';
+                                instructionsTitle.style.marginBottom = '10px';
+                                instructionsTitle.style.color = '#28a745';
+                                instructionsContainer.appendChild(instructionsTitle);
+                                
+                                const message = document.createElement('p');
+                                message.textContent = videoData.message;
+                                message.style.marginBottom = '15px';
+                                message.style.fontWeight = 'bold';
+                                instructionsContainer.appendChild(message);
+                                
+                                const instructionsList = document.createElement('ol');
+                                instructionsList.style.marginBottom = '15px';
+                                videoData.instructions.forEach(instruction => {
+                                    const li = document.createElement('li');
+                                    li.textContent = instruction;
+                                    li.style.marginBottom = '5px';
+                                    instructionsList.appendChild(li);
+                                });
+                                instructionsContainer.appendChild(instructionsList);
+                                
+                                const toolsTitle = document.createElement('h5');
+                                toolsTitle.textContent = 'Recommended Video Creation Tools:';
+                                toolsTitle.style.marginBottom = '10px';
+                                toolsTitle.style.color = '#6c757d';
+                                instructionsContainer.appendChild(toolsTitle);
+                                
+                                const toolsList = document.createElement('ul');
+                                videoData.videoCreationTools.forEach(tool => {
+                                    const li = document.createElement('li');
+                                    li.textContent = tool;
+                                    li.style.marginBottom = '3px';
+                                    toolsList.appendChild(li);
+                                });
+                                instructionsContainer.appendChild(toolsList);
+                                
+                                // Add quick start guide if available
+                                if (videoData.quickStartGuide) {
+                                    const quickStartTitle = document.createElement('h5');
+                                    quickStartTitle.textContent = 'Quick Start Guide:';
+                                    quickStartTitle.style.marginTop = '15px';
+                                    quickStartTitle.style.marginBottom = '10px';
+                                    quickStartTitle.style.color = '#007bff';
+                                    instructionsContainer.appendChild(quickStartTitle);
+                                    
+                                    const quickStartList = document.createElement('ul');
+                                    quickStartList.style.backgroundColor = '#e3f2fd';
+                                    quickStartList.style.padding = '10px';
+                                    quickStartList.style.borderRadius = '5px';
+                                    quickStartList.style.border = '1px solid #bbdefb';
+                                    
+                                    videoData.quickStartGuide.forEach(step => {
+                                        const li = document.createElement('li');
+                                        li.textContent = step;
+                                        li.style.marginBottom = '5px';
+                                        li.style.fontSize = '14px';
+                                        quickStartList.appendChild(li);
+                                    });
+                                    instructionsContainer.appendChild(quickStartList);
+                                }
+                                
+                                // Add the instructions to the page
+                                const generatedFrame = document.getElementById('generatedImageFrame');
+                                generatedFrame.appendChild(instructionsContainer);
+                                
+                                console.log('Video creation instructions displayed successfully!');
+                            } else {
+                                alert('Video creation failed: ' + (videoData.error || 'Unknown error'));
+                            }
                         } else {
                             const errorData = await response.json();
                             console.error('Video creation failed:', errorData);

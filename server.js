@@ -660,10 +660,9 @@ app.post('/generate-video', handleUpload, async (req, res) => {
     }
 });
 
-// Create MP4 video from frames (temporarily disabled until dependencies are installed)
-/*
+// Create downloadable frames package (since video processing dependencies aren't installed)
 app.post('/create-video', async (req, res) => {
-    console.log('=== VIDEO CREATION ENDPOINT ACCESSED ===');
+    console.log('=== FRAME PACKAGE CREATION ENDPOINT ===');
     
     try {
         const { frameUrls, fps = 8 } = req.body;
@@ -675,42 +674,49 @@ app.post('/create-video', async (req, res) => {
             });
         }
         
-        console.log('Creating video from frames:', frameUrls.length);
+        console.log('Creating frame package from:', frameUrls.length, 'frames');
         console.log('FPS:', fps);
         
-        // Create output directory
-        const outputDir = path.join(__dirname, 'videos');
-        await fs.ensureDir(outputDir);
-        
-        // Generate unique filename
-        const timestamp = Date.now();
-        const videoPath = path.join(outputDir, `video_${timestamp}.mp4`);
-        
-        // Create video
-        const createdVideoPath = await createVideoFromFrames(frameUrls, videoPath, fps);
-        
-        // Return video file for download
-        res.download(createdVideoPath, `generated_video_${timestamp}.mp4`, (err) => {
-            if (err) {
-                console.error('Error sending video file:', err);
-                res.status(500).json({ error: 'Failed to send video file' });
-            } else {
-                // Clean up video file after sending
-                fs.remove(createdVideoPath).catch(cleanupErr => 
-                    console.error('Error cleaning up video file:', cleanupErr)
-                );
-            }
+        // Return frame URLs and instructions for manual video creation
+        res.json({
+            success: true,
+            message: `Successfully generated ${frameUrls.length} frames for video creation`,
+            frameUrls: frameUrls,
+            fps: fps,
+            instructions: [
+                '1. Download all frames using the "Download All Frames" button',
+                '2. Use a web-based video editor (no installation required)',
+                '3. Upload the frames in sequence',
+                '4. Set the frame rate to ' + fps + ' FPS',
+                '5. Export as MP4 video'
+            ],
+            videoCreationTools: [
+                '🎬 Canva (canva.com) - Free, easy to use',
+                '🎬 Kapwing (kapwing.com) - Free online video editor',
+                '🎬 Clipchamp (clipchamp.com) - Microsoft\'s free editor',
+                '🎬 WeVideo (wevideo.com) - Free tier available',
+                '🎬 FlexClip (flexclip.com) - Simple online editor',
+                '📱 Mobile: CapCut (web version) or InShot (mobile app)'
+            ],
+            quickStartGuide: [
+                '💡 Quick Start with Canva:',
+                '1. Go to canva.com and create account',
+                '2. Create new video project',
+                '3. Upload your downloaded frames',
+                '4. Drag frames to timeline in order',
+                '5. Set duration to 0.125 seconds per frame (8 FPS)',
+                '6. Export as MP4'
+            ]
         });
         
     } catch (error) {
-        console.error('Video creation error:', error);
+        console.error('Frame package creation error:', error);
         res.status(500).json({
             error: error.message,
-            details: 'Video creation failed'
+            details: 'Frame package creation failed'
         });
     }
 });
-*/
 
 // Text-to-image generation using Replicate
 async function generateTextToImage(prompt, negativePrompt) {
