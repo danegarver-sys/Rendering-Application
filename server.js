@@ -1,5 +1,5 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
-console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
+console.log("=== VIDEO MODEL: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438 ===");
 console.log("=== VIDEO FRAMES: 48, FPS: 8 ===");
 const express = require('express');
 const cors = require('cors');
@@ -88,13 +88,35 @@ app.get('/test-image', async (req, res) => {
     }
 });
 
+// Debug route to test video generation directly
+app.get('/test-video-generation', async (req, res) => {
+    console.log('=== TESTING VIDEO GENERATION DIRECTLY ===');
+    try {
+        // Test with a simple prompt
+        const result = await generateVideo("a simple architectural building with smooth camera movement", [], "blurry, low quality");
+        console.log('Direct video generation test result:', result);
+        res.json({ 
+            message: 'Video generation test completed', 
+            result: result,
+            hasVideo: 'video' in result,
+            hasImage: 'image' in result
+        });
+    } catch (error) {
+        console.error('Direct video generation test failed:', error);
+        res.status(500).json({ 
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // Debug route to test video endpoint
 app.get('/test-video', (req, res) => {
     console.log('Test video route accessed');
     res.json({ 
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
-        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
         videoFrames: 48,
         videoFps: 8
     });
@@ -768,7 +790,7 @@ async function generateVideo(prompt, images, negativePrompt) {
     console.log('VIDEO: Negative prompt:', negativePrompt);
     console.log('VIDEO: Images count:', images ? images.length : 0);
     
-    // Use the working video model that was working before
+    // Try a different video model that might be more reliable
     let postData;
     
     if (images && images.length > 0) {
@@ -777,28 +799,32 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
                 num_frames: 48,
-                fps: 8
+                fps: 8,
+                motion_bucket_id: 127,
+                cond_aug: 0.02
             }
         });
-        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using image-to-video generation with alternative stable-video-diffusion model');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 num_frames: 48,
-                fps: 8
+                fps: 8,
+                motion_bucket_id: 127,
+                cond_aug: 0.02
             }
         });
-        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion');
+        console.log('VIDEO: Using text-to-video generation with alternative stable-video-diffusion model');
     }
 
     const options = {
@@ -850,7 +876,23 @@ async function generateVideo(prompt, images, negativePrompt) {
                 // If prediction is already completed, return it
                 if (prediction.status === 'succeeded' && prediction.output) {
                     console.log('VIDEO Prediction already completed');
-                    resolve({ video: prediction.output[0] }); // Return actual video
+                    console.log('VIDEO Output type:', typeof prediction.output);
+                    console.log('VIDEO Output length:', Array.isArray(prediction.output) ? prediction.output.length : 'not array');
+                    
+                    if (Array.isArray(prediction.output) && prediction.output.length > 0) {
+                        const outputUrl = prediction.output[0];
+                        console.log('VIDEO Output URL:', outputUrl);
+                        
+                        // Check if it's actually a video file
+                        if (outputUrl.includes('.mp4') || outputUrl.includes('video')) {
+                            resolve({ video: outputUrl });
+                        } else {
+                            console.log('VIDEO: Output appears to be an image, returning as image');
+                            resolve({ image: outputUrl });
+                        }
+                    } else {
+                        reject(new Error('No output received from video generation'));
+                    }
                     return;
                 }
                 
@@ -860,7 +902,22 @@ async function generateVideo(prompt, images, negativePrompt) {
                     try {
                         const result = await pollForCompletion(prediction.id);
                         console.log('VIDEO Polling completed successfully');
-                        resolve({ video: result.output[0] }); // Return actual video
+                        console.log('VIDEO Polling result:', result);
+                        
+                        if (result.output && Array.isArray(result.output) && result.output.length > 0) {
+                            const outputUrl = result.output[0];
+                            console.log('VIDEO Polling output URL:', outputUrl);
+                            
+                            // Check if it's actually a video file
+                            if (outputUrl.includes('.mp4') || outputUrl.includes('video')) {
+                                resolve({ video: outputUrl });
+                            } else {
+                                console.log('VIDEO: Polling output appears to be an image, returning as image');
+                                resolve({ image: outputUrl });
+                            }
+                        } else {
+                            reject(new Error('No output received from video generation polling'));
+                        }
                     } catch (error) {
                         console.log('VIDEO Polling failed:', error.message);
                         reject(error);

@@ -1,7 +1,7 @@
 {
   "name": "architectural-rendering-backend",
   "version": "1.0.0",
-  "description": "Backend for architectural rendering image generation",
+  "description": "Backend for architectural rendering image generation - VIDEO GENERATION ENABLED",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
