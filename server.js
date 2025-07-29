@@ -1,6 +1,7 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
-console.log("=== VIDEO MODEL: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438 ===");
-console.log("=== VIDEO FRAMES: 48, FPS: 8 ===");
+console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
+console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
+console.log("=== FORCE RESTART: " + new Date().toISOString() + " ===");
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -116,8 +117,8 @@ app.get('/test-video', (req, res) => {
     res.json({ 
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
-        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
-        videoFrames: 48,
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoFrames: 24,
         videoFps: 8
     });
 });
@@ -295,6 +296,7 @@ app.post('/generate-video', handleUpload, async (req, res) => {
     console.log('Video request body keys:', Object.keys(req.body));
     console.log('Video files received:', req.files ? Object.keys(req.files) : 'No files');
     console.log('Video request body content:', req.body);
+    console.log('=== SERVER TIMESTAMP:', new Date().toISOString(), '===');
     
     try {
         const { prompt, imageType1, imageType2, imageType3 } = req.body;
@@ -338,7 +340,7 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             imageCount: uploadedImages.length
         });
 
-        // Generate video (now cinematic image)
+        // Generate video
         const result = await generateVideo(prompt, uploadedImages, negativePrompt);
         console.log('Video generation result:', result);
         res.json(result);
@@ -350,17 +352,32 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             name: error.name,
             stack: error.stack
         });
+        console.error('Error occurred at:', new Date().toISOString());
         
         // Try to get more details about the error
         if (error.message && error.message.includes('Replicate API error')) {
             console.error('Replicate API specific error detected');
         }
         
-        res.status(500).json({
-            error: error.message,
-            details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
-            stack: error.stack
-        });
+        // Fallback: try to generate an image instead of video
+        console.log('Attempting fallback to image generation...');
+        try {
+            const fallbackResult = await generateTextToImage(prompt + " cinematic, high quality", negativePrompt);
+            console.log('Fallback image generation successful:', fallbackResult);
+            res.json({ 
+                image: fallbackResult.image, 
+                message: 'Video generation failed, but here is a cinematic image instead',
+                originalError: error.message
+            });
+        } catch (fallbackError) {
+            console.error('Fallback image generation also failed:', fallbackError);
+            res.status(500).json({
+                error: error.message,
+                details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            });
+        }
     }
 });
 
@@ -799,32 +816,36 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 48,
+                num_frames: 24,
                 fps: 8,
                 motion_bucket_id: 127,
-                cond_aug: 0.02
+                cond_aug: 0.02,
+                width: 1024,
+                height: 576
             }
         });
-        console.log('VIDEO: Using image-to-video generation with alternative stable-video-diffusion model');
+        console.log('VIDEO: Using image-to-video generation with stable-video-diffusion model');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
-                num_frames: 48,
+                num_frames: 24,
                 fps: 8,
                 motion_bucket_id: 127,
-                cond_aug: 0.02
+                cond_aug: 0.02,
+                width: 1024,
+                height: 576
             }
         });
-        console.log('VIDEO: Using text-to-video generation with alternative stable-video-diffusion model');
+        console.log('VIDEO: Using text-to-video generation with stable-video-diffusion model');
     }
 
     const options = {
@@ -878,13 +899,19 @@ async function generateVideo(prompt, images, negativePrompt) {
                     console.log('VIDEO Prediction already completed');
                     console.log('VIDEO Output type:', typeof prediction.output);
                     console.log('VIDEO Output length:', Array.isArray(prediction.output) ? prediction.output.length : 'not array');
+                    console.log('VIDEO Full output:', JSON.stringify(prediction.output, null, 2));
                     
                     if (Array.isArray(prediction.output) && prediction.output.length > 0) {
                         const outputUrl = prediction.output[0];
                         console.log('VIDEO Output URL:', outputUrl);
+                        console.log('VIDEO URL contains .mp4:', outputUrl.includes('.mp4'));
+                        console.log('VIDEO URL contains video:', outputUrl.includes('video'));
+                        console.log('VIDEO URL contains .png:', outputUrl.includes('.png'));
+                        console.log('VIDEO URL contains .jpg:', outputUrl.includes('.jpg'));
                         
                         // Check if it's actually a video file
                         if (outputUrl.includes('.mp4') || outputUrl.includes('video')) {
+                            console.log('VIDEO: Confirmed video file, returning as video');
                             resolve({ video: outputUrl });
                         } else {
                             console.log('VIDEO: Output appears to be an image, returning as image');
