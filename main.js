@@ -786,6 +786,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 downloadContainer.appendChild(testBtn);
                 
                 sequenceContainer.appendChild(downloadContainer);
+                generatedFrame.appendChild(sequenceContainer);
+                
+                console.log('Sequence container added to generatedFrame');
+                console.log('Final generatedFrame children count:', generatedFrame.children.length);
+                console.log('GeneratedFrame children:', Array.from(generatedFrame.children).map(child => child.tagName + (child.className ? '.' + child.className : '')));
+                
+                // Debug: Check if frames are actually in the DOM
+                console.log('Final DOM structure:');
+                console.log('Generated frame children:', generatedFrame.children.length);
+                console.log('Sequence container children:', sequenceContainer.children.length);
+                console.log('Frame grid children:', frameGrid.children.length);
                 
             } else if (data.image && data.frameCount && data.frameCount > 1) {
                 // Fallback: if we have multiple frames but no videoSequence property
