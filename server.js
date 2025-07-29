@@ -1,5 +1,5 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
-console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
+console.log("=== VIDEO MODEL: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438 ===");
 console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
 console.log("=== FORCE RESTART: " + new Date().toISOString() + " ===");
 const express = require('express');
@@ -554,26 +554,36 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             console.error('Replicate API specific error detected');
         }
         
-        // Fallback: try to generate an image instead of video
-        console.log('Attempting fallback to image generation...');
+        // Try alternative video generation approach
+        console.log('Attempting alternative video generation approach...');
         try {
-            const fallbackResult = await generateTextToImage(prompt + " cinematic, high quality", negativePrompt);
-            console.log('Fallback image generation successful:', fallbackResult);
-            res.json({ 
-                image: fallbackResult.image, 
-                message: 'Video generation failed, but here is a cinematic image instead',
-                originalError: error.message
-            });
-        } catch (fallbackError) {
-            console.error('Fallback image generation also failed:', fallbackError);
-            res.status(500).json({
-                error: error.message,
-                details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
-                stack: error.stack,
-                timestamp: new Date().toISOString(),
-                errorType: typeof error,
-                errorConstructor: error.constructor.name
-            });
+            const alternativeResult = await generateVideoAlternative(prompt, uploadedImages, negativePrompt);
+            console.log('Alternative video generation successful:', alternativeResult);
+            res.json(alternativeResult);
+        } catch (alternativeError) {
+            console.error('Alternative video generation also failed:', alternativeError);
+            
+            // Fallback: try to generate an image instead of video
+            console.log('Attempting fallback to image generation...');
+            try {
+                const fallbackResult = await generateTextToImage(prompt + " cinematic, high quality", negativePrompt);
+                console.log('Fallback image generation successful:', fallbackResult);
+                res.json({ 
+                    image: fallbackResult.image, 
+                    message: 'Video generation failed, but here is a cinematic image instead',
+                    originalError: error.message
+                });
+            } catch (fallbackError) {
+                console.error('Fallback image generation also failed:', fallbackError);
+                res.status(500).json({
+                    error: error.message,
+                    details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
+                    stack: error.stack,
+                    timestamp: new Date().toISOString(),
+                    errorType: typeof error,
+                    errorConstructor: error.constructor.name
+                });
+            }
         }
     }
 });
@@ -1014,7 +1024,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt,
                 negative_prompt: negativePrompt,
@@ -1023,11 +1033,11 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 6
             }
         });
-        console.log('VIDEO: Using image-to-video generation with original model');
+        console.log('VIDEO: Using image-to-video generation with alternative model');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
                 prompt: prompt,
                 negative_prompt: negativePrompt,
@@ -1035,7 +1045,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 6
             }
         });
-        console.log('VIDEO: Using text-to-video generation with original model');
+        console.log('VIDEO: Using text-to-video generation with alternative model');
     }
 
     const options = {
@@ -1163,6 +1173,47 @@ async function generateVideo(prompt, images, negativePrompt) {
         req.write(postData);
         req.end();
     });
+}
+
+// Alternative video generation approach
+async function generateVideoAlternative(prompt, images, negativePrompt) {
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    
+    if (!REPLICATE_API_TOKEN) {
+        throw new Error('REPLICATE_API_TOKEN not configured');
+    }
+
+    console.log('VIDEO ALTERNATIVE: Starting alternative video generation');
+    console.log('VIDEO ALTERNATIVE: Prompt:', prompt);
+    console.log('VIDEO ALTERNATIVE: Negative prompt:', negativePrompt);
+    console.log('VIDEO ALTERNATIVE: Images count:', images ? images.length : 0);
+    
+    // Try a completely different approach - generate multiple images and combine them
+    console.log('VIDEO ALTERNATIVE: Using image sequence approach');
+    
+    try {
+        // Generate a sequence of images with slight variations
+        const imagePromises = [];
+        for (let i = 0; i < 8; i++) {
+            const framePrompt = `${prompt}, frame ${i + 1} of 8, cinematic sequence`;
+            const imagePromise = generateTextToImage(framePrompt, negativePrompt);
+            imagePromises.push(imagePromise);
+        }
+        
+        const imageResults = await Promise.all(imagePromises);
+        console.log('VIDEO ALTERNATIVE: Generated image sequence:', imageResults);
+        
+        // Return the first image as a "video frame" for now
+        if (imageResults.length > 0 && imageResults[0].image) {
+            console.log('VIDEO ALTERNATIVE: Returning first frame as image');
+            return { image: imageResults[0].image, message: 'Video generation failed, but here is a cinematic frame' };
+        } else {
+            throw new Error('Failed to generate image sequence');
+        }
+    } catch (error) {
+        console.error('VIDEO ALTERNATIVE: Error in alternative approach:', error);
+        throw error;
+    }
 }
 
 // Poll for prediction completion
