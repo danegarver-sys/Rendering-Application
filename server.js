@@ -137,6 +137,77 @@ app.get('/test-video', (req, res) => {
     });
 });
 
+// Test video model accessibility
+app.get('/test-video-model', async (req, res) => {
+    console.log('=== TESTING VIDEO MODEL ACCESSIBILITY ===');
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    
+    if (!REPLICATE_API_TOKEN) {
+        return res.status(500).json({ error: 'REPLICATE_API_TOKEN not configured' });
+    }
+
+    try {
+        // Test with a simple video generation request
+        const postData = JSON.stringify({
+            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            input: {
+                prompt: "a simple test video",
+                num_frames: 8,
+                fps: 4
+            }
+        });
+
+        const options = {
+            hostname: 'api.replicate.com',
+            port: 443,
+            path: '/v1/predictions',
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${REPLICATE_API_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        const result = await new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    console.log('Video model test response:', data);
+                    if (res.statusCode === 200 || res.statusCode === 201) {
+                        resolve(JSON.parse(data));
+                    } else {
+                        reject(new Error(`Video model test failed: ${res.statusCode} - ${data}`));
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            req.write(postData);
+            req.end();
+        });
+
+        res.json({ 
+            success: true, 
+            message: 'Video model is accessible',
+            result: result
+        });
+    } catch (error) {
+        console.error('Video model test failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            message: 'Video model test failed'
+        });
+    }
+});
+
 // Generate image from multiple inputs
 app.post('/generate', handleUpload, async (req, res) => {
     console.log('=== IMAGE ENDPOINT ACCESSED ===');
@@ -863,7 +934,7 @@ async function generateVideo(prompt, images, negativePrompt) {
     console.log('VIDEO: Images count:', images ? images.length : 0);
     console.log('VIDEO: API Token configured:', !!REPLICATE_API_TOKEN);
     
-    // Try a different video model that might be more reliable
+    // Try a simpler approach with fewer parameters
     let postData;
     
     if (images && images.length > 0) {
@@ -874,26 +945,26 @@ async function generateVideo(prompt, images, negativePrompt) {
         postData = JSON.stringify({
             version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt,
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
-                num_frames: 24,
-                fps: 8
+                num_frames: 16,
+                fps: 6
             }
         });
-        console.log('VIDEO: Using image-to-video generation with alternative stable-video-diffusion model');
+        console.log('VIDEO: Using image-to-video generation with minimal parameters');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
             version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
             input: {
-                prompt: prompt + ", cinematic, high quality, smooth motion",
+                prompt: prompt,
                 negative_prompt: negativePrompt,
-                num_frames: 24,
-                fps: 8
+                num_frames: 16,
+                fps: 6
             }
         });
-        console.log('VIDEO: Using text-to-video generation with alternative stable-video-diffusion model');
+        console.log('VIDEO: Using text-to-video generation with minimal parameters');
     }
 
     const options = {
