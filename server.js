@@ -1,5 +1,5 @@
 console.log("=== SERVER.JS DEPLOYED AT " + new Date().toISOString() + " ===");
-console.log("=== VIDEO MODEL: 3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438 ===");
+console.log("=== VIDEO MODEL: a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38 ===");
 console.log("=== VIDEO FRAMES: 24, FPS: 8 ===");
 console.log("=== FORCE RESTART: " + new Date().toISOString() + " ===");
 const express = require('express');
@@ -75,7 +75,7 @@ app.get('/test-server', (req, res) => {
         status: 'ok', 
         message: 'Server is working',
         timestamp: new Date().toISOString(),
-        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
         videoFrames: 24,
         videoFps: 8
     });
@@ -131,7 +131,7 @@ app.get('/test-video', (req, res) => {
     res.json({ 
         message: 'Video endpoint is accessible!', 
         timestamp: new Date().toISOString(),
-        videoModel: '3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
         videoFrames: 24,
         videoFps: 8
     });
@@ -204,6 +204,77 @@ app.get('/test-video-model', async (req, res) => {
             success: false, 
             error: error.message,
             message: 'Video model test failed'
+        });
+    }
+});
+
+// Simple video generation test
+app.get('/test-simple-video', async (req, res) => {
+    console.log('=== TESTING SIMPLE VIDEO GENERATION ===');
+    const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+    
+    if (!REPLICATE_API_TOKEN) {
+        return res.status(500).json({ error: 'REPLICATE_API_TOKEN not configured' });
+    }
+
+    try {
+        // Try with the simplest possible video generation
+        const postData = JSON.stringify({
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
+            input: {
+                prompt: "a simple red circle",
+                num_frames: 8,
+                fps: 4
+            }
+        });
+
+        const options = {
+            hostname: 'api.replicate.com',
+            port: 443,
+            path: '/v1/predictions',
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${REPLICATE_API_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        const result = await new Promise((resolve, reject) => {
+            const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    console.log('Simple video test response:', data);
+                    if (res.statusCode === 200 || res.statusCode === 201) {
+                        resolve(JSON.parse(data));
+                    } else {
+                        reject(new Error(`Simple video test failed: ${res.statusCode} - ${data}`));
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                reject(error);
+            });
+
+            req.write(postData);
+            req.end();
+        });
+
+        res.json({ 
+            success: true, 
+            message: 'Simple video generation test successful',
+            result: result
+        });
+    } catch (error) {
+        console.error('Simple video test failed:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            message: 'Simple video generation test failed'
         });
     }
 });
@@ -934,7 +1005,7 @@ async function generateVideo(prompt, images, negativePrompt) {
     console.log('VIDEO: Images count:', images ? images.length : 0);
     console.log('VIDEO: API Token configured:', !!REPLICATE_API_TOKEN);
     
-    // Try a simpler approach with fewer parameters
+    // Try a different video model that might be more reliable
     let postData;
     
     if (images && images.length > 0) {
@@ -943,7 +1014,7 @@ async function generateVideo(prompt, images, negativePrompt) {
         const base64Data = baseImage.dataUrl.split(',')[1];
         
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt,
                 negative_prompt: negativePrompt,
@@ -952,11 +1023,11 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 6
             }
         });
-        console.log('VIDEO: Using image-to-video generation with minimal parameters');
+        console.log('VIDEO: Using image-to-video generation with original model');
     } else {
         // Text-to-video generation
         postData = JSON.stringify({
-            version: "3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+            version: "a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38",
             input: {
                 prompt: prompt,
                 negative_prompt: negativePrompt,
@@ -964,7 +1035,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 fps: 6
             }
         });
-        console.log('VIDEO: Using text-to-video generation with minimal parameters');
+        console.log('VIDEO: Using text-to-video generation with original model');
     }
 
     const options = {
