@@ -428,6 +428,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (data.videoSequence) {
                 // Display video sequence (multiple frames)
                 console.log('Displaying video sequence:', data.videoSequence);
+                console.log('Video sequence length:', data.videoSequence.length);
+                console.log('First frame data:', data.videoSequence[0]);
+                console.log('All frame URLs:', data.videoSequence.map(f => f.url));
                 generatedFrame.innerHTML = '';
                 
                 // Create container for video sequence
@@ -457,6 +460,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add each frame
                 data.videoSequence.forEach((frame, index) => {
+                    console.log(`Creating frame ${index + 1}:`, frame);
+                    console.log(`Frame URL: ${frame.url}`);
+                    
                     const frameContainer = document.createElement('div');
                     frameContainer.style.border = '1px solid #ddd';
                     frameContainer.style.borderRadius = '8px';
@@ -469,6 +475,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     frameImg.style.maxWidth = '100%';
                     frameImg.style.height = 'auto';
                     frameImg.style.borderRadius = '4px';
+                    
+                    // Add error handling for image loading
+                    frameImg.onerror = function() {
+                        console.error(`Failed to load frame ${index + 1}:`, frame.url);
+                        this.style.display = 'none';
+                        const errorMsg = document.createElement('p');
+                        errorMsg.textContent = `Frame ${frame.frame} failed to load`;
+                        errorMsg.style.color = 'red';
+                        frameContainer.appendChild(errorMsg);
+                    };
+                    
+                    frameImg.onload = function() {
+                        console.log(`Frame ${index + 1} loaded successfully:`, frame.url);
+                    };
                     
                     const frameLabel = document.createElement('p');
                     frameLabel.textContent = `Frame ${frame.frame}`;
