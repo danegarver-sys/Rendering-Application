@@ -539,19 +539,19 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         const frameCount = 8; // Generate 8 frames for a short video
         const imagePromises = [];
         
+        // Create frame variations array outside the loop
+        const frameVariations = [
+            `${prompt}, frame 1, cinematic, high quality`,
+            `${prompt}, frame 2, slight camera movement, cinematic`,
+            `${prompt}, frame 3, dynamic composition, cinematic`,
+            `${prompt}, frame 4, professional photography, cinematic`,
+            `${prompt}, frame 5, movie still, cinematic`,
+            `${prompt}, frame 6, dramatic lighting, cinematic`,
+            `${prompt}, frame 7, atmospheric, cinematic`,
+            `${prompt}, frame 8, cinematic composition, high quality`
+        ];
+        
         for (let i = 0; i < frameCount; i++) {
-            // Create slight variations in the prompt for each frame
-            const frameVariations = [
-                `${prompt}, frame ${i + 1}, cinematic, high quality`,
-                `${prompt}, frame ${i + 1}, slight camera movement, cinematic`,
-                `${prompt}, frame ${i + 1}, dynamic composition, cinematic`,
-                `${prompt}, frame ${i + 1}, professional photography, cinematic`,
-                `${prompt}, frame ${i + 1}, movie still, cinematic`,
-                `${prompt}, frame ${i + 1}, dramatic lighting, cinematic`,
-                `${prompt}, frame ${i + 1}, atmospheric, cinematic`,
-                `${prompt}, frame ${i + 1}, cinematic composition, high quality`
-            ];
-            
             const framePrompt = frameVariations[i] || `${prompt}, frame ${i + 1}, cinematic`;
             
             // Generate each frame
@@ -567,25 +567,35 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         
         // Wait for all frames to be generated
         console.log('Generating all frames...');
-        const frameResults = await Promise.all(imagePromises);
-        console.log('All frames generated:', frameResults.length);
-        
-        // Extract image URLs from results
-        const videoFrames = frameResults.map((result, index) => ({
-            frame: index + 1,
-            url: result.image,
-            prompt: frameVariations[index] || `${prompt}, frame ${index + 1}, cinematic`
-        }));
-        
-        console.log('Video sequence created with frames:', videoFrames.length);
-        
-        // Return the video sequence (first frame as main image, all frames in sequence)
-        res.json({ 
-            image: videoFrames[0].url, // Main image for display
-            videoSequence: videoFrames, // All frames for video creation
-            message: `Generated ${frameCount} cinematic frames that can be combined into a video sequence`,
-            frameCount: frameCount
-        });
+        try {
+            const frameResults = await Promise.all(imagePromises);
+            console.log('All frames generated successfully:', frameResults.length);
+            
+            // Extract image URLs from results
+            const videoFrames = frameResults.map((result, index) => {
+                console.log(`Frame ${index + 1} result:`, result);
+                return {
+                    frame: index + 1,
+                    url: result.image,
+                    prompt: frameVariations[index] || `${prompt}, frame ${index + 1}, cinematic`
+                };
+            });
+            
+            console.log('Video sequence created with frames:', videoFrames.length);
+            console.log('First frame URL:', videoFrames[0]?.url);
+            
+            // Return the video sequence (first frame as main image, all frames in sequence)
+            res.json({ 
+                image: videoFrames[0].url, // Main image for display
+                videoSequence: videoFrames, // All frames for video creation
+                message: `Generated ${frameCount} cinematic frames that can be combined into a video sequence`,
+                frameCount: frameCount
+            });
+        } catch (frameError) {
+            console.error('Error generating frames:', frameError);
+            console.error('Frame error stack:', frameError.stack);
+            throw frameError;
+        }
         
     } catch (error) {
         console.error('Video sequence generation error:', error);
