@@ -433,6 +433,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('All frame URLs:', data.videoSequence.map(f => f.url));
                 generatedFrame.innerHTML = '';
                 
+                // Add a simple test message first
+                const testMsg = document.createElement('div');
+                testMsg.textContent = 'VIDEO SEQUENCE TEST - If you see this, display is working!';
+                testMsg.style.backgroundColor = 'yellow';
+                testMsg.style.padding = '10px';
+                testMsg.style.margin = '10px';
+                testMsg.style.border = '2px solid red';
+                testMsg.style.fontWeight = 'bold';
+                generatedFrame.appendChild(testMsg);
+                
+                console.log('Test message added to generatedFrame');
+                
                 // Create container for video sequence
                 const sequenceContainer = document.createElement('div');
                 sequenceContainer.style.textAlign = 'center';
@@ -457,6 +469,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 frameGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
                 frameGrid.style.gap = '10px';
                 frameGrid.style.marginBottom = '20px';
+                frameGrid.style.border = '2px solid red'; // Debug border
+                frameGrid.style.minHeight = '200px'; // Ensure grid has height
+                
+                console.log('Frame grid created, adding frames...');
                 
                 // Add each frame
                 data.videoSequence.forEach((frame, index) => {
@@ -464,10 +480,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log(`Frame URL: ${frame.url}`);
                     
                     const frameContainer = document.createElement('div');
-                    frameContainer.style.border = '1px solid #ddd';
+                    frameContainer.style.border = '2px solid blue'; // Debug border
                     frameContainer.style.borderRadius = '8px';
                     frameContainer.style.padding = '10px';
                     frameContainer.style.textAlign = 'center';
+                    frameContainer.style.backgroundColor = '#f0f0f0'; // Debug background
+                    frameContainer.style.minHeight = '150px'; // Ensure container has height
                     
                     const frameImg = document.createElement('img');
                     frameImg.src = frame.url;
@@ -475,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     frameImg.style.maxWidth = '100%';
                     frameImg.style.height = 'auto';
                     frameImg.style.borderRadius = '4px';
+                    frameImg.style.border = '1px solid green'; // Debug border
                     
                     // Add error handling for image loading
                     frameImg.onerror = function() {
@@ -488,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     frameImg.onload = function() {
                         console.log(`Frame ${index + 1} loaded successfully:`, frame.url);
+                        console.log(`Frame ${index + 1} dimensions:`, this.naturalWidth, 'x', this.naturalHeight);
                     };
                     
                     const frameLabel = document.createElement('p');
@@ -499,9 +519,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     frameContainer.appendChild(frameImg);
                     frameContainer.appendChild(frameLabel);
                     frameGrid.appendChild(frameContainer);
+                    
+                    console.log(`Frame ${index + 1} container added to grid`);
                 });
                 
+                console.log('All frames added to grid, grid children count:', frameGrid.children.length);
                 sequenceContainer.appendChild(frameGrid);
+                console.log('Frame grid added to sequence container');
                 
                 // Add download buttons for each frame
                 const downloadContainer = document.createElement('div');
