@@ -608,15 +608,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 downloadAllBtn.textContent = 'Download All Frames';
                 downloadAllBtn.className = 'download-btn';
                 downloadAllBtn.style.marginRight = '10px';
-                downloadAllBtn.onclick = function() {
-                    data.videoSequence.forEach((frame, index) => {
-                        const link = document.createElement('a');
-                        link.href = frame.url;
-                        link.download = `frame_${frame.frame}.png`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    });
+                downloadAllBtn.onclick = async function() {
+                    try {
+                        downloadAllBtn.textContent = 'Downloading...';
+                        downloadAllBtn.disabled = true;
+                        
+                        console.log('Starting download of all frames...');
+                        
+                        // Download each frame
+                        for (let i = 0; i < data.videoSequence.length; i++) {
+                            const frame = data.videoSequence[i];
+                            console.log(`Downloading frame ${i + 1}:`, frame.url);
+                            
+                            // Fetch the image
+                            const response = await fetch(frame.url);
+                            const blob = await response.blob();
+                            
+                            // Create download link
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `frame_${frame.frame}.png`;
+                            link.style.display = 'none';
+                            
+                            // Trigger download
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            // Clean up
+                            window.URL.revokeObjectURL(url);
+                            
+                            console.log(`Frame ${i + 1} downloaded successfully`);
+                            
+                            // Add a small delay between downloads to ensure browser processes each one
+                            if (i < data.videoSequence.length - 1) {
+                                await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay
+                            }
+                        }
+                        
+                        console.log('All frames downloaded successfully!');
+                        alert('All frames downloaded to your Downloads folder!');
+                        
+                    } catch (error) {
+                        console.error('Error downloading frames:', error);
+                        alert('Error downloading frames: ' + error.message);
+                    } finally {
+                        downloadAllBtn.textContent = 'Download All Frames';
+                        downloadAllBtn.disabled = false;
+                    }
                 };
                 downloadContainer.appendChild(downloadAllBtn);
                 
