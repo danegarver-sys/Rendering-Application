@@ -67,6 +67,20 @@ app.get('/main.html', (req, res) => {
     res.sendFile(__dirname + '/main.html');
 });
 
+// Simple test endpoint to check server status
+app.get('/test-server', (req, res) => {
+    console.log('=== SERVER TEST ENDPOINT ACCESSED ===');
+    console.log('=== SERVER TIMESTAMP:', new Date().toISOString(), '===');
+    res.json({ 
+        status: 'ok', 
+        message: 'Server is working',
+        timestamp: new Date().toISOString(),
+        videoModel: 'a00d0b7dcbb9c3fbb34ba87d2d5b46c56977c3eef98aabac255f893ec60f9a38',
+        videoFrames: 24,
+        videoFps: 8
+    });
+});
+
 // Test endpoint to verify server is working
 app.get('/test', (req, res) => {
     console.log('Test endpoint accessed');
@@ -353,6 +367,8 @@ app.post('/generate-video', handleUpload, async (req, res) => {
             stack: error.stack
         });
         console.error('Error occurred at:', new Date().toISOString());
+        console.error('Error type:', typeof error);
+        console.error('Error constructor:', error.constructor.name);
         
         // Try to get more details about the error
         if (error.message && error.message.includes('Replicate API error')) {
@@ -375,7 +391,9 @@ app.post('/generate-video', handleUpload, async (req, res) => {
                 error: error.message,
                 details: 'Video generation failed. Please try again with a different prompt or check your Replicate API token.',
                 stack: error.stack,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                errorType: typeof error,
+                errorConstructor: error.constructor.name
             });
         }
     }
@@ -822,11 +840,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 negative_prompt: negativePrompt,
                 image: `data:image/jpeg;base64,${base64Data}`,
                 num_frames: 24,
-                fps: 8,
-                motion_bucket_id: 127,
-                cond_aug: 0.02,
-                width: 1024,
-                height: 576
+                fps: 8
             }
         });
         console.log('VIDEO: Using image-to-video generation with stable-video-diffusion model');
@@ -838,11 +852,7 @@ async function generateVideo(prompt, images, negativePrompt) {
                 prompt: prompt + ", cinematic, high quality, smooth motion",
                 negative_prompt: negativePrompt,
                 num_frames: 24,
-                fps: 8,
-                motion_bucket_id: 127,
-                cond_aug: 0.02,
-                width: 1024,
-                height: 576
+                fps: 8
             }
         });
         console.log('VIDEO: Using text-to-video generation with stable-video-diffusion model');
