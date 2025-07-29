@@ -538,19 +538,14 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         // Generate a sequence of images with slight variations to simulate video
         console.log('=== GENERATING VIDEO SEQUENCE ===');
         
-        const frameCount = 8; // Generate 8 frames for a short video
+        const frameCount = 3; // Reduced to 3 frames for testing
         const imagePromises = [];
         
         // Create frame variations array outside the loop
         const frameVariations = [
             `${prompt}, frame 1, cinematic, high quality`,
             `${prompt}, frame 2, slight camera movement, cinematic`,
-            `${prompt}, frame 3, dynamic composition, cinematic`,
-            `${prompt}, frame 4, professional photography, cinematic`,
-            `${prompt}, frame 5, movie still, cinematic`,
-            `${prompt}, frame 6, dramatic lighting, cinematic`,
-            `${prompt}, frame 7, atmospheric, cinematic`,
-            `${prompt}, frame 8, cinematic composition, high quality`
+            `${prompt}, frame 3, dynamic composition, cinematic`
         ];
         
         for (let i = 0; i < frameCount; i++) {
@@ -596,7 +591,34 @@ app.post('/generate-video', handleUpload, async (req, res) => {
         } catch (frameError) {
             console.error('Error generating frames:', frameError);
             console.error('Frame error stack:', frameError.stack);
-            throw frameError;
+            
+            // Fallback: generate just one frame
+            console.log('=== FALLBACK: GENERATING SINGLE FRAME ===');
+            try {
+                let singleResult;
+                if (uploadedImages.length > 0) {
+                    singleResult = await generateImageToImage(prompt + " cinematic, high quality", uploadedImages, negativePrompt);
+                } else {
+                    singleResult = await generateTextToImage(prompt + " cinematic, high quality", negativePrompt);
+                }
+                
+                console.log('Single frame generated successfully:', singleResult);
+                
+                // Return single frame as video sequence
+                res.json({ 
+                    image: singleResult.image,
+                    videoSequence: [{
+                        frame: 1,
+                        url: singleResult.image,
+                        prompt: prompt + " cinematic, high quality"
+                    }],
+                    message: 'Video generation failed, but here is a cinematic image',
+                    frameCount: 1
+                });
+            } catch (fallbackError) {
+                console.error('Fallback generation also failed:', fallbackError);
+                throw frameError; // Throw original error
+            }
         }
         
     } catch (error) {
