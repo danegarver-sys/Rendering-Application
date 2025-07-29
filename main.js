@@ -457,6 +457,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Test message added to generatedFrame');
                 console.log('Generated frame children count after test:', generatedFrame.children.length);
                 
+                // Test: Try to display the first frame directly
+                const testImage = document.createElement('img');
+                testImage.src = data.videoSequence[0].url;
+                testImage.alt = 'Test Frame 1';
+                testImage.style.maxWidth = '200px';
+                testImage.style.height = 'auto';
+                testImage.style.border = '3px solid red';
+                testImage.style.margin = '10px';
+                testImage.onload = function() {
+                    console.log('Test image loaded successfully:', this.naturalWidth, 'x', this.naturalHeight);
+                };
+                testImage.onerror = function() {
+                    console.error('Test image failed to load:', this.src);
+                };
+                generatedFrame.appendChild(testImage);
+                console.log('Test image added to generatedFrame');
+                
                 // Create container for video sequence
                 const sequenceContainer = document.createElement('div');
                 sequenceContainer.style.textAlign = 'center';
